@@ -810,51 +810,34 @@ def range_unitary_gate( circ, i_start, depth, n_Qbit, seed_val, Qubit_ara):
     for r in range(depth):
      if r%2==0:
 
-#       for i in range(i_start, i_start+n_Qbit+1,1):
-#          #print("U", i)
-#          params = qu.randn(3, dist='uniform', seed=i)
-#          circ.apply_gate('FSIM', *params, i, parametrize=True)
-#          list_u3.append(n_apply)
-#          n_apply+=1
       for i in range(i_start, i_start+n_Qbit, 2):
          #print("F-even", i_start, i_start+n_Qbit, i, (i + 1))
          if seed_val==0:
-          params = [0., 0.]
-          params = [0., 0.,0., 0.,0.]
-          #params = [0.]
+             params = [0., 0.]
+             params = [0., 0.,0., 0.,0.]
+             #params = [0.]
+             #params = [0., 0.,0., 0.,0.,0., 0.,0., 0.,0.,0., 0.,0., 0.,0.]
          else:
-          params = qu.randn(2, dist='uniform', seed=i+seed_val)
-          params = qu.randn(5, dist='uniform', seed=i+seed_val)
-          #params = qu.randn(1, dist='uniform', seed=i+seed_val)
-          #params = qu.randn(15, dist='uniform', seed=i+seed_val)
+             params = qu.randn(2, dist='uniform', seed=i+seed_val)
+             params = qu.randn(5, dist='uniform', seed=i+seed_val)
+             #params = qu.randn(1, dist='uniform', seed=i+seed_val)
+             #params = qu.randn(15, dist='uniform', seed=i+seed_val)
          
-         #print ( "Hi", *params, seed_val, "\n","\n", fsimt(2), "\n","\n", "\n" ) 
          circ.apply_gate('FSIMG',*params,  i, i + 1, parametrize=True, gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False)
 
      elif r%2!=0:
       for i in range( i_start, i_start+n_Qbit-1, 2):
-#          params = qu.randn(3, dist='uniform', seed=i+1)
-#          circ.apply_gate('U3', *params, i+1,parametrize=True)
-#          #print("U",i+1)
-#          list_u3.append(n_apply)
-#          n_apply+=1
-#          circ.apply_gate('U3', *params, i+2,parametrize=True)
-#          #print("U",i+2)
-#          list_u3.append(n_apply)
-#          n_apply+=1
-
-         #print("F-odd", i_start, i_start+n_Qbit, i+1, (i + 2))
          if seed_val==0:
-          params = [0., 0.]
-          params = [0., 0.,0., 0.,0.]
-          #params = [0.]
+            params = [0., 0.]
+            params = [0., 0.,0., 0.,0.]
+            #params = [0.]
+            #params = [0., 0.,0., 0.,0.,0., 0.,0., 0.,0.,0., 0.,0., 0.,0.]
          else:
-          params = qu.randn(2, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-          params = qu.randn(5, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-          #params = qu.randn(1, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-          #params = qu.randn(15, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
+            params = qu.randn(2, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
+            params = qu.randn(5, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
+            #params = qu.randn(1, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
+            #params = qu.randn(15, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
 
-         #print ( params, seed_val, "\n","\n", fsim(2,3), "\n","\n", "\n" ) 
          circ.apply_gate('FSIMG',*params, i+1, i + 2, parametrize=True,  gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False )
 
 
@@ -900,6 +883,28 @@ def auto_diff_gate(qmps,MPO, optimizer_c='L-BFGS-B'):
 )
  return tnopt_qmps
 
+
+def state_gate(qmps, pdmrg):
+   return  1-abs(( pdmrg.H & qmps).contract(all, optimize='auto-hq'))
+
+
+def auto_diff_state( qmps, pdmrg, optimizer_c='L-BFGS-B'):
+
+ tnopt_qmps= qtn.TNOptimizer(
+    qmps,                      
+    loss_fn=state_gate,                    
+    loss_constants={ "pdmrg": pdmrg},
+    constant_tags=[ 'PSI0'],    
+    tags=["FSIMG"],
+    autodiff_backend="jax",   # use 'autograd' for non-compiled optimization
+    optimizer='L-BFGS-B',     # the optimization algorithm
+)
+ return tnopt_qmps
+
+
+
+
+
 def Smart_gate(qmps):
 
   #qmpsGuess=load_from_disk("Store/gateQMPSGuess")
@@ -918,7 +923,7 @@ def Smart_gate(qmps):
 
 def Gate_qmps( ):
 
- L_L=6
+ L_L=8
  U=3.0
  t=1.0
  mu=U//2
@@ -929,9 +934,11 @@ def Gate_qmps( ):
  relative_error=[]
  relative_error_Q=[]
  
- circ=qmps_gate_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, seed_val=10)
+ circ=qmps_gate_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, seed_val=0)
  qmps=circ.psi
  print ( "Info", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "U", U, "t", t, "mu", mu)
+ print (  "N_gates", len(circ.gates)*3  )
+
 
 
 
@@ -940,10 +947,12 @@ def Gate_qmps( ):
  plt.clf()
 
 
- #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
- MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
- #MPO_origin=MPO_origin.astype('complex128')
+ MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
+ #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+ MPO_origin=MPO_origin.astype('complex128')
  #print (MPO_origin[0].data)
+
+ 
 
  print ( "param_init", qmps["GATE_0"].params)
 
@@ -960,16 +969,25 @@ def Gate_qmps( ):
  p_DMRG=dmrg.state
  N_particle, N_up, N_down=Hubburd_correlation( p_DMRG, L_L, opt) 
  print ("DMRG-part", N_particle, N_up, N_down)
- print( "E_DMRG", E_exact)  #p_DMRG.show()
+ print( "E_exact", E_exact)  #p_DMRG.show()
+
+ dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100], cutoffs=1.e-12) 
+ dmrg.solve(tol=1.e-12, verbosity=0 )
+ p_DMRG=dmrg.state
+ print( "E_DMRG", dmrg.energy)  #p_DMRG.show()
 
 
-#  tnopt_qmps=auto_diff_gate(qmps, MPO_origin, optimizer_c='L-BFGS-B')
+
+ tnopt_qmps=auto_diff_gate(qmps, MPO_origin, optimizer_c='L-BFGS-B')
+ #tnopt_qmps=auto_diff_state(qmps, p_DMRG, optimizer_c='L-BFGS-B')
+
+
 #  tnopt_qmps.optimizer = 'L-BFGS-B' 
-#  qmps = tnopt_qmps.optimize(n=100, gtol= 1e-10, ftol= 2.220e-12, maxfun= 10e+10)
-# 
-# #SLSQP, CG
+#  qmps = tnopt_qmps.optimize(n=400, gtol= 1e-10, ftol= 2.220e-12, maxfun= 10e+10)
+
+#SLSQP, CG
 #  tnopt_qmps.optimizer = 'adam' 
-#  qmps = tnopt_qmps.optimize(n=100, gtol= 1e-12,eps= 1e-08, ftol= 2.220e-12, maxfun= 10e+10)
+#  qmps = tnopt_qmps.optimize(n=50, gtol= 1e-12,eps= 1e-08, ftol= 2.220e-12, maxfun= 10e+10)
  N_particle, N_up, N_down=Hubburd_correlation( qmps, L_L, opt) 
  print ("QMPS-part", N_particle, N_up, N_down)
 
@@ -985,33 +1003,42 @@ def Gate_qmps( ):
  E_DMRG=dmrg.energy
  print( "DMRG", D,  E_DMRG)
 
-# 
-#  y=tnopt_qmps.losses[:]
-#  relative_error.append( abs((y[-1]-E_exact)/E_exact))
-#  relative_error_Q.append( abs((E_DMRG-E_exact)/E_exact))
-# 
-#  print ("error_qmps" ,relative_error, "\n", "error_dmrg", relative_error_Q)
-# 
-# 
-#  file = open("Data/Gate.txt", "w")
-#  for index in range(len(y)):
-#     file.write( str(index) + "  "+ str(y[index])+ "  "+ str(abs((y[index]-E_exact)/E_exact)) + "\n")
-#  file.close()
-# 
+
+
+
+
+ psi_h=qmps.H 
+ qmps.align_(MPO_origin, psi_h)
+ E_final=( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq').real
+ print ("E_final", E_final,  abs((E_final-E_exact)/E_exact) )
+
+
+ y=tnopt_qmps.losses[:]
+ relative_error.append( abs((E_final-E_exact)/E_exact))
+ relative_error_Q.append( abs((E_DMRG-E_exact)/E_exact))
+
+ print ("error_qmps" ,relative_error, "\n", "error_dmrg", relative_error_Q)
+
+
+ file = open("Data/Gate.txt", "w")
+ for index in range(len(y)):
+    file.write( str(index) + "  "+ str(y[index])+ "  "+ str(abs((y[index]-E_exact)/E_exact)) + "\n")
+ file.close()
+
 
 
 
 
  circ.update_params_from(qmps)
  psi_denc=circ.to_dense()
- print ("E_dense,", circ.to_dense(), "\n", psi_denc.H @ ham_heis(L_L) @ psi_denc, "\n", psi_denc.H @ psi_denc)
+ #print ("psi_dense,", circ.to_dense(), "\n")
  
+ print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
+
  
  #save_to_disk(qmps, "Store/circ")
-
- #print ( "param_final", qmps["GATE_0"].params, qmps["GATE_1"].params, qmps["GATE_2"].params, qmps["GATE_3"].params, qmps["GATE_4"].params)
-
- print ("\n", "param_final", np.equal(qmps["GATE_0"].data.reshape(4,4), fsimg(*qmps["GATE_0"].params)),"\n", qmps["GATE_0"].params,"\n",qmps["GATE_0"].data,"\n",  fsimg(*qmps["GATE_0"].params), "\n")
+ print ( "param_final", qmps["GATE_0"].params)
+ #print ("\n", "param_final", np.equal(qmps["GATE_0"].data.reshape(4,4), fsimg(*qmps["GATE_0"].params)),"\n", qmps["GATE_0"].params,"\n",qmps["GATE_0"].data,"\n",  fsimg(*qmps["GATE_0"].params), "\n")
 
 
 
@@ -1027,7 +1054,10 @@ def Gate_qmps( ):
  for  i in range(len(list_gates)):
 
   t,theta, Zeta, chi, gamma, phi, qubit1, qubit2 =list_gates[i]
+  #t,theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3,qubit1, qubit2=list_gates[i]
+
   list_params.append((theta, Zeta, chi, gamma, phi))
+#  list_params.append((theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3))
   list_qubits.append((qubit1, qubit2))
 
 
