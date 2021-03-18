@@ -8,61 +8,20 @@ from qiskit.circuit import Parameter
 from qiskit.visualization import plot_state_city, plot_bloch_multivector
 from qiskit.visualization import plot_state_paulivec, plot_state_hinton
 from qiskit.visualization import plot_state_qsphere
-
-
-
-
-
-def make_circuit(circ, param_1, where ):
- 
- theta, zeta, chi, gamma, phi=param_1
- q0, q1=where
- #print (where, q0, q1, theta, gamma, phi)
-
-
- circ.rz(-2.*phi,q0)
-
- circ.rz(chi+zeta,q1)
-
-
- circ.h(q0)
- circ.cz(q0, q1)
- circ.h(q0)
-
- circ.rz(-2.*gamma,q0)
- circ.ry(-theta,q1)
-
-
- circ.h(q1)
- circ.cz(q0, q1)
- circ.h(q1)
-
- circ.ry(theta,q1)
-
- circ.h(q0)
- circ.cz(q0, q1)
- circ.h(q0)
-
- circ.rz(-zeta,q0)
- circ.rz(-chi,q1)
-
-
- return circ
-
-
-
-
-
-
+import quf
 
 
 list_params=load_from_disk("list_params")
-print (list_params)
+#print (list_params)
 
 list_qubits=load_from_disk("list_qubits")
-print (list_qubits)
+#print (list_qubits)
 
-L=6
+L=8
+U=3.0
+t=1.0
+mu=U//2
+
 circ = QuantumCircuit(L,L)
 
 #Register qubit
@@ -75,8 +34,8 @@ for i in range(L):
 for i in range(len(list_params)):
      param_1=list_params[i]
      where=list_qubits[i]
-     circ=make_circuit( circ, param_1, where )
-
+     circ=quf.make_circuit( circ, param_1, where )
+     #circ=quf.make_circuit_gen(circ, param_1, where )
 
 
 
@@ -88,20 +47,30 @@ job = execute(circ, backend)
 result_sim = job.result()
 psi  = result_sim.get_statevector(circ, decimals=5)
 
-print ( "psi", psi, "\n", "E=", psi.conj().T @ ham_heis(L) @ psi, psi.conj().T @ psi
-)
-plot_state_city(psi)
-plt.savefig('psi-city.pdf')
-plt.clf()
 
-plot_state_hinton(psi)
-plt.savefig('psi-hinton.pdf')
-plt.clf()
+#print ("psi", psi)
+MPO_origin=quf.mpo_Fermi_Hubburd(L//2, U, t, mu)
+MPO_N=quf.mpo_particle(L//2)
+MPO_up, MPO_down=quf.mpo_spin(L//2)
+print ("E_exact", -6.3474)
+print (  "E=", psi.conj().T @ MPO_origin.to_dense() @ psi)
+print (  "N=", psi.conj().T @ MPO_N.to_dense() @ psi)
+print (  "Up=", psi.conj().T @ MPO_up.to_dense() @ psi)
+print (  "Down=", psi.conj().T @ MPO_down.to_dense() @ psi)
 
 
-plot_state_paulivec(psi, title="My Paulivec", color=['purple', 'orange', 'green'])
-plt.savefig('psi-paulivec.pdf')
-plt.clf()
+# plot_state_city(psi)
+# plt.savefig('psi-city.pdf')
+# plt.clf()
+# 
+# plot_state_hinton(psi)
+# plt.savefig('psi-hinton.pdf')
+# plt.clf()
+# 
+# 
+# plot_state_paulivec(psi, title="My Paulivec", color=['purple', 'orange', 'green'])
+# plt.savefig('psi-paulivec.pdf')
+# plt.clf()
 
 
 
