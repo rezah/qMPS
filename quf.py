@@ -13,6 +13,11 @@ from numpy.linalg import inv
 from cmath import exp, pi, sin, cos, acos, log, polar
 import cotengra as ctg
 import copy
+import autoray
+from progress.bar import Bar
+import tqdm
+import warnings
+
 
 val_intense=0.0
 
@@ -412,12 +417,6 @@ def convert_wave_function_to_real(qmps, L_L, tags):
 
 
 
-
-
-
-
-
-
 def convert_wave_function_to_real_2D(psi, L_x, L_y, tags):
 
  mps_product=psi.select('PEPS', which='any')
@@ -759,12 +758,6 @@ def   brickwall_circuit( L=16, in_depth=4, n_Qbit=4, depth_total=3, data_type='f
 
    return psi, list_u3
 
-
-
-
-
-
-
 def pollmann_circuit( L=16, in_depth=4, n_Qbit=4, depth_total=3, data_type='float64', qmps_structure="pollmann" , n_q_mera=2, seed_init=60):
 
    seed_val=seed_init
@@ -777,9 +770,6 @@ def pollmann_circuit( L=16, in_depth=4, n_Qbit=4, depth_total=3, data_type='floa
    for t in  range(L):
      psi[t].modify(tags=[f"I{t}", "MPS"])
 
-
-
-
    for r in range(depth_total):
     Qubit_ara=r
     for i in range(0, L-n_Qbit+1, n_Qbit//2):
@@ -791,21 +781,29 @@ def pollmann_circuit( L=16, in_depth=4, n_Qbit=4, depth_total=3, data_type='floa
        if qmps_structure=="mera":
          n_apply, list_u3=MERA_internal( psi, i, n_Qbit, in_depth, n_apply,list_u3, n_q_mera, Qubit_ara)
 
-
-
    #print (psi, L, type(list_u3), list_u3)
    psi=convert_wave_function_to_real(psi, L, list_u3)
 
    return psi, list_u3
 
 
+def Smart_gate(qmps):
+  dic_mps=load_from_disk("Store/gateInfo")
+  for i in dic_mps:
+      try:
+            qmps[i].params=dic_mps[i]
+      except (KeyError, AttributeError):
+                  pass  # do nothing!
+  return qmps
 
 
 
-def range_unitary_gate( circ, i_start, depth, n_Qbit, seed_val, Qubit_ara):
+def range_unitary_gate( circ, i_start, depth, n_Qbit, seed_val, Qubit_ara, **kwargs):
+
+    gt=kwargs["gate_type"]
+    lp=kwargs["len_parma"]
     gate_round=None
     if n_Qbit==0: depth=1
-
 
     for r in range(depth):
      if r%2==0:
@@ -813,37 +811,24 @@ def range_unitary_gate( circ, i_start, depth, n_Qbit, seed_val, Qubit_ara):
       for i in range(i_start, i_start+n_Qbit, 2):
          #print("F-even", i_start, i_start+n_Qbit, i, (i + 1))
          if seed_val==0:
-             params = [0., 0.]
-             params = [0., 0.,0., 0.,0.]
-             #params = [0.]
-             #params = [0., 0.,0., 0.,0.,0., 0.,0., 0.,0.,0., 0.,0., 0.,0.]
+              params = [0.]*lp
          else:
-             params = qu.randn(2, dist='uniform', seed=i+seed_val)
-             params = qu.randn(5, dist='uniform', seed=i+seed_val)
-             #params = qu.randn(1, dist='uniform', seed=i+seed_val)
-             #params = qu.randn(15, dist='uniform', seed=i+seed_val)
+              params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
          
-         circ.apply_gate('FSIMG',*params,  i, i + 1, parametrize=True, gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False)
+         circ.apply_gate( gt, *params, i, i + 1, parametrize=True, gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False )
 
      elif r%2!=0:
       for i in range( i_start, i_start+n_Qbit-1, 2):
          if seed_val==0:
-            params = [0., 0.]
-            params = [0., 0.,0., 0.,0.]
-            #params = [0.]
-            #params = [0., 0.,0., 0.,0.,0., 0.,0., 0.,0.,0., 0.,0., 0.,0.]
+             params = [0.]*lp
          else:
-            params = qu.randn(2, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-            params = qu.randn(5, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-            #params = qu.randn(1, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
-            #params = qu.randn(15, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
+             params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val+Qubit_ara)
 
-         circ.apply_gate('FSIMG',*params, i+1, i + 2, parametrize=True,  gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False )
+         circ.apply_gate( gt, *params, i+1, i + 2, parametrize=True,  gate_round=f'P{Qubit_ara}L{i}D{r}', contract=False )
 
 
 
-def qmps_gate_f( L=16, in_depth=2, n_Qbit=3, seed_val=10):
-
+def qmps_gate_f( L=16, in_depth=2, n_Qbit=3, seed_val=10, **kwargs):
    list_basis=[]
    for i in range(L):
     if i%2==0:
@@ -857,28 +842,26 @@ def qmps_gate_f( L=16, in_depth=2, n_Qbit=3, seed_val=10):
    circ = qtn.Circuit( L, MPS_computational_state(list_basis))
    for i in range(0,L-n_Qbit,1):
      Qubit_ara=i+n_Qbit
-     range_unitary_gate(circ, i, in_depth, n_Qbit, seed_val, Qubit_ara)
-
-
+     range_unitary_gate(circ, i, in_depth, n_Qbit, seed_val, Qubit_ara, **kwargs )
    return circ
 
 
 def energy_gate(qmps, MPO):
    psi_h=qmps.H 
    qmps.align_(MPO, psi_h)
-   return  (( psi_h & MPO & qmps).contract(all, optimize='auto-hq')).real
+   E_complex=(( psi_h & MPO & qmps).contract(all, optimize='auto-hq'))
+   return  autoray.do('real',  E_complex)
 
 
-
-def auto_diff_gate(qmps,MPO, optimizer_c='L-BFGS-B'):
+def auto_diff_gate(qmps,MPO, GATE, optimizer_c='L-BFGS-B'):
 
  tnopt_qmps= qtn.TNOptimizer(
     qmps,                      
     loss_fn=energy_gate,                    
     loss_constants={ "MPO": MPO},
     constant_tags=[ 'PSI0'],    
-    tags=["FSIMG"],
-    autodiff_backend="jax",   # use 'autograd' for non-compiled optimization
+    tags=[GATE],
+    autodiff_backend="tensorflow",   # use 'autograd' for non-compiled optimization
     optimizer='L-BFGS-B',     # the optimization algorithm
 )
  return tnopt_qmps
@@ -888,58 +871,43 @@ def state_gate(qmps, pdmrg):
    return  1-abs(( pdmrg.H & qmps).contract(all, optimize='auto-hq'))
 
 
-def auto_diff_state( qmps, pdmrg, optimizer_c='L-BFGS-B'):
+def auto_diff_stateGATE( qmps, pdmrg, GATE, optimizer_c='L-BFGS-B'):
 
  tnopt_qmps= qtn.TNOptimizer(
     qmps,                      
     loss_fn=state_gate,                    
     loss_constants={ "pdmrg": pdmrg},
     constant_tags=[ 'PSI0'],    
-    tags=["FSIMG"],
-    autodiff_backend="jax",   # use 'autograd' for non-compiled optimization
+    tags=[GATE],
+    autodiff_backend="tensorflow",   # use 'autograd' for non-compiled optimization
     optimizer='L-BFGS-B',     # the optimization algorithm
 )
  return tnopt_qmps
 
 
 
-
-
-def Smart_gate(qmps):
-
-  #qmpsGuess=load_from_disk("Store/gateQMPSGuess")
-  dic_mps=load_from_disk("Store/gateInfo")
-
-  for i in dic_mps:
-      try:
-            qmps[i].params=dic_mps[i]
-      except (KeyError, AttributeError):
-                  pass  # do nothing!
-
-
-  return qmps
-
-
-
-def Gate_qmps( ):
+def Gate_qmps_finite( ):
 
  L_L=8
- U=3.0
+ U=6.0
  t=1.0
  mu=U//2
  opt="auto-hq"
  Qbit=3
- Depth=4
+ Depth=8
  D=8
  relative_error=[]
  relative_error_Q=[]
  
- circ=qmps_gate_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, seed_val=0)
+ 
+ 
+ 
+ GATE="FSIMG"
+ PARAM=5
+ circ=qmps_gate_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, seed_val=10, gate_type=GATE, len_parma=PARAM)
  qmps=circ.psi
  print ( "Info", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "U", U, "t", t, "mu", mu)
  print (  "N_gates", len(circ.gates)*3  )
-
-
 
 
  circ.psi.draw(color=['PSI0'] + [f'ROUND_lay{i}' for i in range(L_L)], iterations=600, figsize=(80, 80),  return_fig=True,node_size=700 , edge_scale=6, initial_layout='spectral', edge_alpha=0.633)
@@ -947,8 +915,8 @@ def Gate_qmps( ):
  plt.clf()
 
 
- MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
- #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+ #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
+ MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
  MPO_origin=MPO_origin.astype('complex128')
  #print (MPO_origin[0].data)
 
@@ -956,7 +924,7 @@ def Gate_qmps( ):
 
  print ( "param_init", qmps["GATE_0"].params)
 
- qmps=Smart_gate(qmps)
+ #qmps=Smart_gate(qmps)
  psi_h=qmps.H 
  qmps.align_(MPO_origin, psi_h)
  print ("E_init", ( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq').real, ( qmps.H & qmps).contract(all, optimize='auto-hq'))
@@ -978,12 +946,12 @@ def Gate_qmps( ):
 
 
 
- tnopt_qmps=auto_diff_gate(qmps, MPO_origin, optimizer_c='L-BFGS-B')
- #tnopt_qmps=auto_diff_state(qmps, p_DMRG, optimizer_c='L-BFGS-B')
+ tnopt_qmps=auto_diff_gate(qmps, MPO_origin, GATE, optimizer_c='L-BFGS-B')
+ #tnopt_qmps=auto_diff_stateGATE(qmps, p_DMRG, optimizer_c='L-BFGS-B')
 
 
-#  tnopt_qmps.optimizer = 'L-BFGS-B' 
-#  qmps = tnopt_qmps.optimize(n=400, gtol= 1e-10, ftol= 2.220e-12, maxfun= 10e+10)
+ tnopt_qmps.optimizer = 'L-BFGS-B' 
+ qmps = tnopt_qmps.optimize( n=400, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 5, disp=True )
 
 #SLSQP, CG
 #  tnopt_qmps.optimizer = 'adam' 
@@ -1030,10 +998,10 @@ def Gate_qmps( ):
 
 
  circ.update_params_from(qmps)
- psi_denc=circ.to_dense()
+ #psi_denc=circ.to_dense()
  #print ("psi_dense,", circ.to_dense(), "\n")
  
- print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
+ #print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
 
  
  #save_to_disk(qmps, "Store/circ")
@@ -1079,7 +1047,574 @@ def Gate_qmps( ):
 
 
 
+def range_unitary_gate_inf( circ, where_gates, depth, seed_val, Qubit_ara,block_size,list_sharedtags,**kwargs):
 
+    gt=kwargs["gate_type"]
+    lp=kwargs["len_parma"]
+    gate_round=None
+    lis_in_tags_block=[]
+    for r in range(depth):
+     try:
+      if r%2==0:
+
+       for i in range(0,len(where_gates), 2):
+          if seed_val==0:
+               params = [0.]*lp
+               params =[0.,0,0,   0,-pi/2,0,   0,pi/2,0,   0,0,0, -pi/2,pi/2,-pi/2  ]
+          else:
+               params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val)
+
+          #print ("where_e", where_gates[i], where_gates[i + 1], f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
+          circ.apply_gate( gt, *params, where_gates[i], where_gates[i + 1], parametrize=True, gate_round=f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}', contract=False )
+          list_sharedtags.add (f'ROUND_P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
+          lis_in_tags_block.append (f'ROUND_P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
+      elif r%2!=0:
+       for i in range(0,len(where_gates), 2):
+          if seed_val==0:
+               params = [0.]*lp
+               params =[0.,0,0,   0,-pi/2,0,   0,pi/2,0,   0,0,0, -pi/2,pi/2,-pi/2  ]
+          else:
+               params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val)
+
+          circ.apply_gate( gt, *params, where_gates[i+1], where_gates[i + 2], parametrize=True,  gate_round=f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}', contract=False )
+          #print ("where_o", where_gates[i+1], where_gates[i + 2], f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
+          list_sharedtags.add (f'ROUND_P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
+          lis_in_tags_block.append (f'ROUND_P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
+
+     except:    
+         pass
+
+    return list_sharedtags, lis_in_tags_block
+
+
+
+
+
+
+def range_unitary_inf( psi, where_gates, depth, seed_val, Qubit_ara,block_size,list_sharedtags, list_u3, n_apply, data_type="float64", val_intense=0.):
+
+    gate_round=None
+
+    for r in range(depth):
+     try:
+       if r%2==0:
+        for i in range(0,len(where_gates), 2):
+          if seed_val==0:
+             G=np.eye(4, dtype=data_type).reshape((2, 2, 2, 2))
+             Grand=qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
+             G=G+Grand*val_intense
+          else:
+             G = qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
+
+
+          #print ("where_e", where_gates[i], where_gates[i + 1], f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
+          psi.gate_(G, (where_gates[i], where_gates[i + 1]), tags={f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}', f'G{n_apply}'})
+          list_sharedtags.add (f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
+          list_u3.append(f'G{n_apply}')
+          n_apply+=1
+
+       elif r%2!=0:
+        for i in range(0,len(where_gates), 2):
+          if seed_val==0:
+             G=np.eye(4, dtype=data_type).reshape((2, 2, 2, 2))
+             Grand=qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
+             G=G+Grand*val_intense
+          else:
+             G = qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
+
+          #print ("where_o", where_gates[i+1], where_gates[i + 2], f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
+          psi.gate_(G, (where_gates[i+1], where_gates[i + 2]), tags={f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}', f'G{n_apply}'})
+          list_sharedtags.add (f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
+          list_u3.append(f'G{n_apply}')
+          n_apply+=1
+
+     except:    
+         pass
+
+    return list_sharedtags, list_u3, n_apply
+
+
+
+def range_unitary_inf_dens( psi, where_gates, depth, seed_val, Qubit_ara,block_size,list_sharedtags, list_u3, n_apply,n_Qbit ,data_type="float64", val_intense=0.):
+
+  if seed_val==0:
+     G=np.eye(2**(2*n_Qbit+2), dtype=data_type).reshape( (2,)*(2*n_Qbit+2))
+     Grand=qu.randn((2,)*(2*n_Qbit+2),dtype=data_type, dist="uniform", seed=seed_val)
+     G=G+Grand*val_intense
+  else:
+     G = qu.randn((2,)*(2*n_Qbit+2),dtype=data_type, dist="uniform", seed=seed_val)
+
+
+  #print (where_gates, (*where_gates), G.shape, f'P{Qubit_ara%block_size}L0D0')
+  psi.gate_(G, where_gates, tags={f'P{Qubit_ara%block_size}', f'U{n_apply}'})
+  list_sharedtags.add (f'P{Qubit_ara%block_size}')
+  list_u3.append(f'U{n_apply}')
+  n_apply+=1
+
+  return list_sharedtags, list_u3, n_apply
+
+
+
+def  qmps_inf_f(L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10):
+ list_basis=[]
+ list_u3=[]
+ n_apply=0
+ for i in range(L+n_Qbit):
+  if i%2==0:
+   list_basis.append("0")
+  else:    
+   list_basis.append("0")
+  
+#   list_basis=["1", "1"]
+
+# list_basis=["0"]*n_Qbit+list_basis
+ print ("init_basis", list_basis)
+
+ psi = qtn.MPS_computational_state(list_basis)
+ for t in psi:
+   t.modify(left_inds=())
+
+ for t in  range(L+n_Qbit):
+   psi[t].modify(tags=[f"I{t}", "MPS"])
+
+
+
+ where_gates=[ i   for i in range (n_Qbit)]
+ list_sharedtags=qu.oset()
+ for j in range( L//block_size):
+  for i in range( 0, block_size, 1):
+  
+    Qubit_ara=j*block_size+i
+    where_gates_update=where_gates+[j*block_size+i+n_Qbit]
+    #print (where_gates_update, "block", j, "wher_in_block", i, "position", j*block_size+i)
+    list_sharedtags, list_u3, n_apply=range_unitary_inf(psi, where_gates_update, in_depth, seed_val,Qubit_ara, block_size, list_sharedtags,list_u3, n_apply)
+
+ list_sharedtags=list(list_sharedtags)
+ #psi=convert_wave_function_to_real(psi, L+n_Qbit, list_u3)
+ return psi, list_sharedtags, list_u3
+
+
+
+
+
+
+def  mps_inf_f(L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10):
+ list_basis=[]
+ list_u3=[]
+ n_apply=0
+ for i in range(L+n_Qbit):
+  if i%2==0:
+   list_basis.append("0")
+  else:    
+   list_basis.append("0")
+  
+#   list_basis=["1", "1"]
+
+# list_basis=["0"]*n_Qbit+list_basis
+ print ("init_basis", list_basis)
+
+ psi = qtn.MPS_computational_state(list_basis)
+ for t in psi:
+   t.modify(left_inds=())
+
+ for t in  range(L+n_Qbit):
+   psi[t].modify(tags=[f"I{t}", "MPS"])
+
+
+
+ where_gates=[ i   for i in range (n_Qbit)]
+ list_sharedtags=qu.oset()
+ for j in range( L//block_size):
+  for i in range( 0, block_size, 1):
+  
+    Qubit_ara=j*block_size+i
+    where_gates_update=where_gates+[j*block_size+i+n_Qbit]
+    #print (where_gates_update, "block", j, "wher_in_block", i, "position", j*block_size+i)
+    list_sharedtags, list_u3, n_apply=range_unitary_inf_dens(psi, where_gates_update, in_depth, seed_val,Qubit_ara, block_size, list_sharedtags,list_u3, n_apply, n_Qbit)
+
+ list_sharedtags=list(list_sharedtags)
+ #psi=convert_wave_function_to_real(psi, L+n_Qbit, list_u3)
+ return psi, list_sharedtags, list_u3
+
+
+
+
+def energy_infgate(qmps, MPO, L, l_mpo, Qbit):
+   psi_h=qmps.H
+   psi_h=psi_h.reindex({ f"k{L+Qbit-i-1}":f"b{L+Qbit-i-1}"  for i in range(l_mpo) } )
+   E_complex=(( psi_h & MPO & qmps).contract(all, optimize='auto-hq'))
+   return  autoray.do('real',  E_complex)
+
+
+def auto_diff_infgate(qmps, MPO, GATE, sharedtags,  L,
+ l_mpo, Qbit, Qbitoptimizer_c='L-BFGS-B'):
+
+ MPO=MPO.astype('complex128')
+ tnopt_qmps= qtn.TNOptimizer(
+    qmps,                      
+    loss_fn=energy_infgate,                    
+    loss_constants={ "MPO": MPO },
+    constant_tags=[],
+    loss_kwargs={"L":L, "l_mpo":l_mpo, "Qbit":Qbit},    
+    tags=sharedtags,
+    shared_tags=sharedtags,
+    autodiff_backend="tensorflow",  
+    optimizer='L-BFGS-B',     
+)
+ return tnopt_qmps
+
+
+
+def energy_infqmps(qmps, MPO, L, l_mpo, Qbit):
+   psi_h=qmps.H
+   psi_h=psi_h.reindex({ f"k{L+Qbit-i-1}":f"b{L+Qbit-i-1}"  for i in range(l_mpo) } )
+   E_complex=(( psi_h & MPO & qmps).contract(all, optimize='auto-hq'))
+   return  E_complex
+
+def auto_diff_infmps(qmps, MPO, GATE, sharedtags,  L,
+ l_mpo, Qbit, Qbitoptimizer_c='L-BFGS-B'):
+
+
+ tnopt_qmps= qtn.TNOptimizer(
+    qmps,                      
+    loss_fn=energy_infqmps,
+    norm_fn=norm_f_energy,                    
+    loss_constants={ "MPO": MPO },
+    constant_tags=[],
+    loss_kwargs={"L":L, "l_mpo":l_mpo, "Qbit":Qbit},    
+    tags=sharedtags,
+    shared_tags=sharedtags,
+    autodiff_backend="torch",  
+    optimizer='L-BFGS-B',     
+)
+ return tnopt_qmps
+
+
+
+def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10, **kwargs):
+   list_basis=[]
+   for i in range(L+n_Qbit):
+    if i%2==0:
+     list_basis.append("0")
+    else:    
+     list_basis.append("0")
+    
+#   list_basis=["1", "1"]
+
+   #list_basis=["1"]*n_Qbit+list_basis
+   print ("init_basis", list_basis)
+
+   circ = qtn.Circuit( L+n_Qbit, MPS_computational_state(list_basis))
+   where_gates=[ i   for i in range (n_Qbit)]
+   list_sharedtags=qu.oset()
+   list_tag_block=[]
+
+   for j in range( L//block_size):
+    for i in range( 0, block_size, 1):
+    
+      Qubit_ara=j*block_size+i
+      where_gates_update=where_gates+[j*block_size+i+n_Qbit]
+      #print (where_gates_update, "block", j, "wher_in_block", i, "position", j*block_size+i)
+      list_sharedtags, list_tempo=range_unitary_gate_inf(circ, where_gates_update, in_depth, seed_val,Qubit_ara, block_size, list_sharedtags, **kwargs )
+      list_tag_block.append(list_tempo)
+
+
+   #print (list_sharedtags)
+   return circ, list(list_sharedtags), list_tag_block
+
+
+
+def Smart_infgate(qmps):
+  dic_mps=load_from_disk("Store/infgateInfo")
+  for i in dic_mps:
+      #print (i, dic_mps[i])
+      t=qmps[i]
+      t = t if isinstance(t, tuple) else [t]
+      for j in range(len(t)):
+       try:  
+             #print (j)
+             if len(t)==1:
+              qmps[i].params=dic_mps[i]
+             else: 
+              qmps[i][j].params=dic_mps[i]
+
+       except (KeyError, AttributeError):
+                   pass  # do nothing!
+
+
+  return qmps
+
+
+
+def Gate_qmps_infinit( ):
+
+ U=6.0
+ t=1.0
+ mu=U/2.
+ #mu=0
+
+
+ Qbit=2
+ Depth=4
+ D=8
+ L_L=10                           
+ b_s=2                          # ABABAB
+ l_mpo=2 * ( 2 + 1  )
+ GATE="SU4"
+ PARAM=15
+
+
+
+
+
+ opt="auto-hq"
+ relative_error=[]
+ relative_error_Q=[]
+
+ circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=10, gate_type=GATE, len_parma=PARAM)
+ qmps=circ.psi
+
+ #qmps, list_sharedtags, list_tags=qmps_inf_f(L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=10)
+ #qmps.unitize_(method='mgs')
+
+ #qmps, list_sharedtags, list_tags=mps_inf_f(L=L_L, block_size=b_s, in_depth=1, n_Qbit=Qbit, seed_val=10)
+ #qmps.unitize_(method='mgs')
+
+
+ #print (list_sharedtags)
+ print ( "Info", "L", L_L, "Qbit", Qbit,"b_s", b_s, "Depth", Depth, "D", D, "U", U, "t", t, "mu", mu, "GATE", GATE)
+ print (  "N_gates", len(circ.gates)*3  )
+
+
+ qmps.draw(color=[i  for i in list_sharedtags ], iterations=600, figsize=(40, 80),return_fig=True,node_size=1200,edge_scale=6,initial_layout='spectral', edge_alpha=0.633)
+ plt.savefig('Gate.pdf')
+ plt.clf()
+
+
+
+ L_dmrg=10
+ E_exact=DMRG_test( L_dmrg, U, t, mu)
+ E_exact=  -0.414754
+ #E_exact=-4.0/pi
+ #E_exact=-0.443147188
+ print("E_exact=", E_exact)
+
+ qmps=Smart_infgate(qmps)
+
+
+ MPO_origin=mpo_Fermi_Hubburd_inf( l_mpo//2, U, t, mu)
+ MPO_origin.reindex_({ f"k{i}":f"k{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ MPO_origin.reindex_({ f"b{i}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ #qmps=load_from_disk("Store/mps")
+ psi_h=qmps.H 
+ psi_h.reindex_({ f"k{L_L+Qbit-i-1}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ print  ("E_init", ( psi_h & MPO_origin & qmps).contract(all, optimize=opt).real, ( qmps.H & qmps).contract(all, optimize=opt))
+ N_par, Spin_up, Spin_down=part_inf_Hubburd(qmps, l_mpo,L_L, Qbit)
+ 
+#############################################
+
+#state
+ #tnopt_qmps=auto_diff_stateGATE(qmps, mps, list_sharedtags, optimizer_c='L-BFGS-B')
+
+#energy
+ tnopt_qmps=auto_diff_infgate( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
+ #tnopt_qmps=auto_diff_infmps( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
+
+
+
+ tnopt_qmps.optimizer = 'L-BFGS-B' 
+ qmps = tnopt_qmps.optimize( n=10, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+
+ save_to_disk(qmps, "Store/mps")
+ 
+################################################################################
+
+
+
+ psi_h=qmps.H 
+ psi_h.reindex_({ f"k{L_L+Qbit-i-1}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ E_f=( psi_h & MPO_origin & qmps).contract(all, optimize=opt).real
+ N_par, Spin_up, Spin_down=part_inf_Hubburd(qmps, l_mpo, L_L, Qbit)
+ print  ("E_f", E_f, (E_f+N_par*mu)  / ( (l_mpo/2) - 1.) )
+
+ local_particle_info(qmps, L_L, Qbit)
+ Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt)
+
+
+
+
+
+
+
+
+ circ.update_params_from(qmps)
+ psi_denc=circ.to_dense()
+ #print ("psi_dense,", circ.to_dense(), "\n")
+ print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L+Qbit) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
+ MPO_origin=mpo_Fermi_Hubburd((L_L+Qbit)//2, U, t, mu)
+ MPO_N=mpo_particle((L_L+Qbit)//2)
+ MPO_up, MPO_down=mpo_spin((L_L+Qbit)//2)
+ print ("E_exact", -6.3474)
+ print (  "E=", psi_denc.conj().T @ MPO_origin.to_dense() @ psi_denc)
+ print (  "N=", psi_denc.conj().T @ MPO_N.to_dense() @ psi_denc)
+ print (  "Up=", psi_denc.conj().T @ MPO_up.to_dense() @ psi_denc)
+ print (  "Down=", psi_denc.conj().T @ MPO_down.to_dense() @ psi_denc)
+
+
+
+ #print (  qmps["GATE_0"].params,  qmps["GATE_1"].params)
+ #print (type(circ.gates), circ.gates)
+
+ save_to_disk(circ.gates, "Store/infgates")
+ list_gates=load_from_disk("Store/infgates")
+
+
+ list_qubits=[]
+ list_params=[]
+ for  i in range(len(list_gates)):
+  t,theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3,qubit1, qubit2=list_gates[i]
+  list_params.append((theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3))
+  list_qubits.append((qubit1, qubit2))
+
+ save_to_disk(list_params, "Store/list_params")
+ save_to_disk(list_qubits, "Store/list_qubits")
+ save_to_disk(list_tag_block, "Store/list_tag_block")
+
+
+
+
+
+ tag_list=list(qmps.tags)
+ tag_final=[]
+ for i_index in tag_list: 
+     if i_index.startswith('R'): tag_final.append(i_index)
+
+
+ dic_mps={}
+ for   i   in   tag_final:
+   t = qmps[i]
+   t = t if isinstance(t, tuple) else [t]
+   dic_mps[i] = t[0].params
+ save_to_disk(dic_mps, "Store/infgateInfo")
+
+
+ y=tnopt_qmps.losses[:]
+ file = open("Data/infqmps.txt", "w")
+ for index in range(len(y)):
+    E_val=(y[index]+N_par*mu)  / ( (l_mpo/2) - 1.)
+    file.write( str(index) + "  "+ str(y[index])+ "  "+ str(abs((E_val-E_exact)/E_exact)) + "\n")
+ file.close()
+
+
+
+
+
+
+
+
+
+def  local_particle_info(qmps, L_L, Qbit):
+
+ Local_order=[]
+ for i in range( L_L+Qbit):
+
+  MPO_I=MPO_identity(L=L_L+Qbit, phys_dim=2)
+  W = np.zeros([ 1, 1, 2, 2])
+  Z = qu.pauli('Z')
+  X = qu.pauli('X')
+  Y = qu.pauli('Y')
+  I = qu.pauli('I')
+  S_up=(X+1.0j*Y)*(0.5)
+  S_down=(X-1.0j*Y)*(0.5)
+  W[ 0, 0,:,:]=S_up@S_down
+  if i==L_L+Qbit-1:
+   W = np.zeros([ 1, 2, 2])
+   W[ 0,:,:]=S_up@S_down
+  if i==0:
+   W = np.zeros([ 1, 2, 2])
+   W[ 0,:,:]=S_up@S_down
+  
+  MPO_I[i].modify(data=W)
+  psi_h=qmps.H
+  qmps.align_(MPO_I, psi_h)
+  E_final=( psi_h & MPO_I & qmps).contract(all, optimize='auto-hq').real
+  print ("i", i, "X", E_final )
+  Local_order.append(E_final)
+
+  file = open("Data/infTI.txt", "w")
+  for index in range(0, len(Local_order), 2):
+     file.write( str(index) + "  "+ str(Local_order[index])+ "  "+ str(abs((Local_order[index]-Local_order[-1])/Local_order[-1])) + "\n")
+  file.close()
+
+
+
+
+
+
+
+
+def  part_inf_Hubburd(qmps, l_mpo,L_L, Qbit):
+
+
+ psi_h=qmps.H
+ mpo_spin_up, mpo_spin_down=mpo_spin_inf(l_mpo//2)
+ mpo_part=mpo_particle_inf(l_mpo//2)
+
+ mpo_spin_up.reindex_({ f"k{i}":f"k{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ mpo_spin_up.reindex_({ f"b{i}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ mpo_spin_down.reindex_({ f"k{i}":f"k{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ mpo_spin_down.reindex_({ f"b{i}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ mpo_part.reindex_({ f"k{i}":f"k{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ mpo_part.reindex_({ f"b{i}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+
+ psi_h.reindex_({ f"k{L_L+Qbit-i-1}":f"b{L_L+Qbit-i-1}"  for i in range(l_mpo) } )
+ Spin_up=( psi_h & mpo_spin_up & qmps).contract(all, optimize='auto-hq').real
+ print ("Spin_up", Spin_up )
+ Spin_down=( psi_h & mpo_spin_down & qmps).contract(all, optimize='auto-hq').real
+ print ("Spin_down", Spin_down )
+ N_par=( psi_h & mpo_part & qmps).contract(all, optimize='auto-hq').real
+ print ("Part", N_par, "dopping", ((l_mpo//2)-1)/N_par )
+
+ return N_par, Spin_up, Spin_down
+
+
+
+
+
+
+
+
+def MPO_ham_ITF():
+
+ MPO_I=MPO_identity(L=3, phys_dim=2)
+ MPO_II=MPO_identity(L=3, phys_dim=2)
+ MPO_III=MPO_identity(L=3, phys_dim=2)
+ MPO_Z=MPO_identity(L=3, phys_dim=2)
+ MPO_Z1=MPO_identity(L=3, phys_dim=2)
+
+ Wr = np.zeros([ 1, 2, 2])
+ Wl = np.zeros([ 1, 2, 2])
+ W = np.zeros([ 1, 1, 2, 2])
+ Wl[ 0,:,:]=pauli('X')/2.
+ W[ 0,:,:]=pauli('X')
+ Wr[ 0,:,:]=pauli('X')/2.
+ MPO_I[0].modify(data=Wl)
+ MPO_II[1].modify(data=W)
+ MPO_III[2].modify(data=Wr)
+
+ Wr = np.zeros([ 1, 2, 2])
+ Wl = np.zeros([ 1, 2, 2])
+ W = np.zeros([ 1, 1, 2, 2])
+ Wl[ 0,:,:]=pauli('Z')
+ W[ 0,:,:]=pauli('Z')
+ Wr[ 0,:,:]=pauli('Z')
+
+ MPO_Z[0].modify(data=Wl)
+ MPO_Z[1].modify(data=W)
+ MPO_Z1[1].modify(data=W)
+ MPO_Z1[2].modify(data=Wr)
+ MPO_origin=MPO_Z+MPO_Z1+MPO_I+MPO_II+MPO_III
+ return MPO_origin
 
 
 
@@ -1106,6 +1641,18 @@ def get_unitary_form(teta, phi, Lambda):
 
 
 
+ #print (  qmps["GATE_1"].params,  qmps["GATE_5"].params)
+ #print (  type(qmps["GATE_1"].params), *qmps["GATE_1"].params )
+
+#  for i in list_sharedtags:
+#    #print (i) 
+#    t=qmps[i]
+#    target=t[0]
+#    for j in t:
+#       #print ( np.array_equal(j.data, target.data) )
+       
+#  print ( np.array_equal(qmps["G4"].data, qmps["G12"].data) )
+#  print ( np.array_equal(qmps["G6"].data, qmps["G14"].data) )
 
 
 
@@ -1189,6 +1736,9 @@ def DMRG_style(p_DMRG, list_tag, V_opt1, MPO_origin,MPO_ten, L, E_exact,N_iter=2
  E_0=10
  E_11=100.
  E_1=100.
+
+ pbar = tqdm.tqdm(total=N_iter, disable=not True)
+
  for j in range(N_iter):
 
   overlap_TN=p_DMRG.H & V_opt
@@ -1204,6 +1754,13 @@ def DMRG_style(p_DMRG, list_tag, V_opt1, MPO_origin,MPO_ten, L, E_exact,N_iter=2
   E_dmrg=(V_opt_h | MPO_origin | V_opt).contract(all,optimize=opt_method) 
   E_11=E_dmrg*1.0
   #print (path)
+  msg = f"{Dis_val} [energy: {E_dmrg}] "
+  pbar.update()
+  pbar.set_description(msg)
+
+
+
+
   Energy_list.append(E_dmrg.real)
   y_list.append((E_exact-E_dmrg.real)/E_exact)
 
@@ -1215,7 +1772,7 @@ def DMRG_style(p_DMRG, list_tag, V_opt1, MPO_origin,MPO_ten, L, E_exact,N_iter=2
   if (abs(E_0-E_11)/abs(E_11))<1.0e-10:
    break
 
-  print ( "Energy_DMRG", j, E_dmrg.real, "fidel", Dis_val, "error", (E_exact-E_dmrg.real)/E_exact, "step-error", abs(E_0-E_11)/abs(E_11))
+  #print ( "Energy_DMRG", j, E_dmrg.real, "fidel", Dis_val, "error", (E_exact-E_dmrg.real)/E_exact, "step-error", abs(E_0-E_11)/abs(E_11))
 
 
   list_iter.append(iter_val)
@@ -1223,14 +1780,14 @@ def DMRG_style(p_DMRG, list_tag, V_opt1, MPO_origin,MPO_ten, L, E_exact,N_iter=2
 
   for i_ter in  range( len(list_tag) ):
    for ii_iter in range(N_iter_inner):
-       V_opt_h=V_opt.H 
-       V_opt.align_(MPO_ten, V_opt_h)
-       for i in range(len(list_tag)):
-         V_opt_h[list_tag[i]].modify(tags="GGGGGG")
+#        V_opt_h=V_opt.H 
+#        V_opt.align_(MPO_ten, V_opt_h)
+#        for i in range(len(list_tag)):
+#          V_opt_h[list_tag[i]].modify(tags="GGGGGG")
 
 
-       overlap_TN=V_opt_h | MPO_ten | V_opt
- #      overlap_TN=p_DMRG.H & V_opt
+       #overlap_TN=V_opt_h | MPO_ten | V_opt
+       overlap_TN=p_DMRG.H & V_opt
        t, = overlap_TN.select_tensors(list_tag[i_ter], which='any')
        tn_env = overlap_TN.select(list_tag[i_ter], which='!any')
        t_env = tn_env.contract(all,optimize=opt_method, get=None, output_inds=t.inds)
@@ -1541,6 +2098,25 @@ def energy_f(qmps, p_DMRG, MPO):
    qmps.align_(MPO, psi_h)
    return ( psi_h & MPO & qmps).contract(all, optimize='auto-hq')
 
+def state_qmps(qmps, p_DMRG):
+   return  1-abs(( p_DMRG.H & qmps).contract(all, optimize='auto-hq'))
+
+
+def auto_diff_stateQMPS(qmps, p_DMRG, optimizer_c='L-BFGS-B'):
+
+ tnopt_qmps= qtn.TNOptimizer(
+    qmps,                      
+    loss_fn=state_qmps,                    
+    norm_fn=norm_f_energy,
+    loss_constants={'p_DMRG': p_DMRG},
+    constant_tags=[ 'ket0'],    
+    tags=["U"],
+    autodiff_backend="torch",   # use 'autograd' for non-compiled optimization
+    optimizer='L-BFGS-B',     # the optimization algorithm
+)
+ return tnopt_qmps
+
+
 
 
 def auto_diff_energy(qmps, p_DMRG,MPO, optimizer_c='L-BFGS-B'):
@@ -1568,13 +2144,11 @@ def Smart_guess(qmps, tag, L, Qbit , val_iden=0):
   for i_index in tag_list: 
       if i_index.startswith('P'): tag_final.append(i_index)
 
-
   for i in tag_final:
       try:
             qmps[i].modify(data=qmpsGuess[i].data)
       except (KeyError, AttributeError):
                   pass  # do nothing!
-
 
   for i in tag:
    A=qmps[i].data
@@ -1600,13 +2174,13 @@ def auto_diff_qmps( ):
 
  opt="auto-hq"
  J_l=[]
- L_L=8
- Qbit=4
- Depth=8
- D=32
+ L_L=16
+ Qbit=3
+ Depth=4
+ D=64
  depth_total_f=1
 
- print ( "Info", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
+ print ( "Info_QMPS", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
 
 
  qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
@@ -1614,8 +2188,8 @@ def auto_diff_qmps( ):
 
  #print ("Defined qmps", qmps)
 
-# qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=0, internal_mera="brickwall",n_q_mera=2 )
-# qmps.unitize_(method='mgs')
+#  qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=1, internal_mera="brickwall",n_q_mera=2 )
+#  qmps.unitize_(method='mgs')
 
 # qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=0 )
 # qmps.unitize_(method='mgs')
@@ -1643,26 +2217,41 @@ def auto_diff_qmps( ):
  for iter in range(1):
   coupling=coupling+0.1
   MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
-  MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+  #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
   #MPO_origin=mpo_longrange_Heisenberg(L_L)
-  DMRG_test( L_L, U, t, mu)
-  print ("MPO", MPO_origin.show())
-  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 160, 220, 250], cutoffs=1.e-12) 
+  #DMRG_test( L_L, U, t, mu)
+  #print ("MPO", MPO_origin.show())
+  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150], cutoffs=1.e-12) 
   dmrg.solve(tol=1.e-12, verbosity=0 )
   E_exact=dmrg.energy
   p_DMRG=dmrg.state
-  print( "coupling", coupling, "Eexact", E_exact, p_DMRG.show())
-  Hubburd_correlation( p_DMRG, L_L, opt) 
+  N_particle, N_up, N_down=Hubburd_correlation( p_DMRG, L_L, opt) 
+  print ("DMRG-part", N_particle, N_up, N_down)
+  print( "E_dmrg", E_exact, p_DMRG.show())
+  #Hubburd_correlation( p_DMRG, L_L, opt) 
+
+
+
+
 
 
   print("qmps")
   #qmps=load_from_disk("Store/qmps")
-  tnopt_qmps=auto_diff_energy(qmps, p_DMRG, MPO_origin, optimizer_c='L-BFGS-B')
-  tnopt_qmps.optimizer = 'L-BFGS-B' 
-  qmps = tnopt_qmps.optimize(n=1600, ftol= 2.220e-10, maxfun= 10e+10)
+  #tnopt_qmps=auto_diff_energy(qmps, p_DMRG, MPO_origin, optimizer_c='L-BFGS-B')
+  tnopt_qmps=auto_diff_stateQMPS(qmps, p_DMRG, optimizer_c='L-BFGS-B')
 
-#, ftol= 2.220e-10, gtol= 1e-10
-#'eps': 1e-08: the absolute step size used for numerical approximation of the jacobian via forward differences.
+
+
+  tnopt_qmps.optimizer = 'L-BFGS-B' 
+  #tnopt_qmps.optimizer = 'CG' 
+  print ( tnopt_qmps.optimizer )
+  qmps = tnopt_qmps.optimize(n=1500 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  #qmps = tnopt_qmps.optimize_basinhopping(n=100, nhop=10, temperature=0.5 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 1, disp=False)
+
+
+#  tnopt_qmps.optimizer = 'TNC' 
+#  qmps = tnopt_qmps.optimize( n=1000, stepmx=200, eta=0.25, maxCGit=200, accuracy=1e-12, maxfun=int(10e+8), gtol= 1e-10, disp=True)
+
 
 #   print ("nevals", tnopt_qmps.nevals)
 #   tnopt_qmps.optimizer = 'adam'
@@ -1671,7 +2260,14 @@ def auto_diff_qmps( ):
   save_to_disk(qmps, "Store/qmpsGuess")
   #save_to_disk(qmps, "Store/qmeraGuess")
 
-  Hubburd_correlation( qmps, L_L, opt) 
+  #Hubburd_correlation( qmps, L_L, opt) 
+  N_particle, N_up, N_down=Hubburd_correlation( qmps, L_L, opt) 
+  print ("QMPS-part", N_particle, N_up, N_down)
+
+  psi_h=qmps.H 
+  qmps.align_(MPO_origin, psi_h)
+  E_final=( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq').real
+  print ("E_final", E_final,  abs((E_final-E_exact)/E_exact) )
 
 
   print("DMRG")
@@ -1718,6 +2314,324 @@ def auto_diff_qmps( ):
  plt.grid(True)
  plt.savefig('qmps-plot.pdf')
  plt.clf()
+
+
+
+
+def DMRG_qmps( ):
+
+ relative_error_DMRG=[]
+ relative_error_p=[]
+ relative_error=[]
+ J_l=[]
+ L_L=16
+ Qbit=3
+ Depth=4
+ D=16
+ depth_total_f=1
+
+ J=1.0
+ h=1.0
+ U=3.0
+ t=1.0
+ mu=U/2
+ print ( "Info_DMRG", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
+
+
+ qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=40)
+ qmps.unitize_(method='mgs')
+
+#  qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=10, internal_mera="brickwall",n_q_mera=2 )
+#  qmps.unitize_(method='mgs')
+# 
+# 
+#  qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", n_q_mera=2,seed_init=10 )
+#  qmps.unitize_(method='mgs')
+# 
+#  qmps, tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall',seed_init=90) 
+#  qmps.unitize_(method='mgs')
+
+
+ qmps.draw( color=[f"lay{i}" for i in range(L_L)],  show_inds=False, show_tags=False, iterations=600, k=None, fix=None, figsize=(60, 60) , legend=True, return_fig=True, node_size=700 , edge_scale=6, highlight_inds=( ), initial_layout='spectral', edge_alpha=0.6333333333333333,)
+ plt.savefig('qmps_dmrg.pdf')
+ plt.clf()
+
+
+
+ #print (qmps_brickwall)
+ opt = ctg.ReusableHyperOptimizer(
+     progbar=True,
+     reconf_opts={},
+     max_repeats=20,
+     parallel=True,
+     directory="cash/"
+ )
+ #opt='auto-hq'
+
+
+ MPO_ten, MPO_origin, E_exact, p_DMRG, H_ham_list=make_Hamiltonian( L_L, J, h ,U, t, mu)
+
+
+
+ #qmps=Smart_guessdmrg(qmps, tag, L_L, Qbit, val_iden=0.00)
+ psi_h=qmps.H 
+ qmps.align_(MPO_origin, psi_h)
+ print ("E_init", ( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq'))
+ #save_to_disk(qmps, "Store/qmpsGuess")
+
+
+
+
+ coupling=-0.0
+ for iter in range(1):
+  coupling=coupling+0.05
+  J=1.0
+  h=coupling*1.0
+  MPO_ten, MPO_origin, E_exact, p_DMRG, H_ham_list=make_Hamiltonian( L_L, J, h ,U, t, mu)
+
+  print("L", L_L,"exact", E_exact)
+  print("qmps")
+  #qmps=load_from_disk("Store/qmpsdmrg")
+  qmps_fidel, qmps_iter, qmps, E_qmps_brickwall=DMRG_style(p_DMRG, tag, qmps, MPO_origin, MPO_ten, L_L, E_exact, N_iter=1000, N_iter_inner=1, opt_method=opt)
+  save_to_disk(qmps, "Store/qmpsdmrg")
+  save_to_disk(qmps, "Store/qmpsGuessdmrg")
+
+
+
+  print("DMRG")
+  dmrg = DMRG2(MPO_origin, bond_dims=[D], cutoffs=1e-10) 
+  dmrg.solve(tol=1e-8, verbosity=0 )
+  E_DMRG=dmrg.energy
+  print( "DMRG", "D", D, "Energy", E_DMRG)
+
+
+
+  relative_error.append( abs((E_qmps_brickwall[-1]-E_exact)/E_exact))
+  relative_error_DMRG.append( abs((E_DMRG-E_exact)/E_exact))
+  J_l.append(coupling)
+  print (J_l, relative_error, "\n",relative_error_p, "\n", relative_error_DMRG)
+
+
+
+ file = open("Data/QmpsPointdmrg.txt", "w")
+ for index in range(len(E_qmps_brickwall)):
+    file.write(str(index) + "  "+ str(E_qmps_brickwall[index])+ "  "+ str(abs((E_qmps_brickwall[index]-E_exact)/E_exact)) + "\n")
+ file.close()
+
+
+ file = open("Data/fideldmrg.txt", "w")
+ for index in range(len(E_qmps_brickwall)):
+    file.write(str(index) + "  "+ str(qmps_fidel[index])+ "  " + "\n")
+ file.close()
+
+
+
+ y_list=[  abs((E_qmps_brickwall[i]-E_exact)/E_exact)  for i in range(len(E_qmps_brickwall)) ]
+ x_list=[ i for i in range(len(E_qmps_brickwall)) ]
+
+
+ plt.loglog(x_list,y_list, 'o', color = '#c30be3', label=r'qmps-brikwall, $n_q=2, N_{lay}=4$')
+
+ plt.title('qmps')
+ plt.ylabel(r'$\delta$ E')
+ plt.xlabel(r'$h$')
+ #plt.axhline(1.149e-07, color='black', label='D=8')
+ plt.legend(loc='upper left')
+ plt.grid(True)
+ plt.savefig('DMRG-plot.pdf')
+ plt.clf()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def auto_diff_qmps_time( ):
+
+ relative_error=[]
+ relative_error_p=[]
+ relative_error_Q=[]
+
+ U=5.0
+ t=1.0
+ mu=0  #U/2.
+
+ opt="auto-hq"
+ J_l=[]
+ L_L=16
+ Qbit=4
+ Depth=4
+ D=64
+ depth_total_f=1
+
+ print ( "Info", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
+
+
+ qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
+ qmps.unitize_(method='mgs')
+
+ #print ("Defined qmps", qmps)
+
+# qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=0, internal_mera="brickwall",n_q_mera=2 )
+# qmps.unitize_(method='mgs')
+
+# qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=0 )
+# qmps.unitize_(method='mgs')
+
+ #qmps, tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall',seed_init=90) 
+ #qmps.unitize_(method='mgs')
+
+ print ( "number_gates", len(tag) )
+
+ qmps.draw( color=[f"lay{i}" for i in range(L_L)], iterations=600, figsize=(80, 80),  return_fig=True,node_size=700 , edge_scale=6, initial_layout='spectral', edge_alpha=0.633)
+ plt.savefig('qmps.pdf')
+ plt.clf()
+
+ #qmps=Smart_guess(qmps, tag, L_L, Qbit, val_iden=0.00)
+ p_0=MPS_computational_state('1' * L_L)
+ p_0=MPS_product_state( [[0.450+2.j, 0.250-4.j]] * L_L, cyclic=False)
+ p_0=MPS_rand_state(L=L_L, bond_dim=1)
+ #p_0.left_canonize()
+ p_0=p_0.astype('complex128')
+ norm_val=(p_0.H & p_0).contract(all, optimize=opt)
+ p_0=p_0*(norm_val**(-0.5))
+ print ( "norm", (p_0.H & p_0).contract(all, optimize=opt) )
+ 
+ 
+ MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+ MPO_origin=MPO_origin.astype('complex128')
+ 
+ grid_time=0.2
+ for iter in range(10):
+
+  print( "time", (iter+1)*grid_time, "grid_time", grid_time)
+
+  MPO_exp, MPO_exp_H=exp_ham_Tylor( L_L, MPO_origin, complex(0.,-1.)*grid_time, order_expan=12, cutoff_val=1e-14, max_bond_val=120)
+
+
+  print ( p_0.show())
+  p_0=MPO_exp.apply(p_0, compress=True, max_bond=120, cutoff=+10e-12)
+  print ( p_0.show())
+
+
+
+
+
+
+  print("qmps")
+  #qmps=load_from_disk("Store/qmps")
+#   tnopt_qmps=auto_diff_stateQMPS(qmps, p_0, optimizer_c='L-BFGS-B')
+#   tnopt_qmps.optimizer = 'L-BFGS-B' 
+#   qmps = tnopt_qmps.optimize(n=10 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  #qmps = tnopt_qmps.optimize_basinhopping(n=100, nhop=10, temperature=0.5 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 1, disp=False)
+
+
+#   tnopt_qmps.optimizer = 'adam'
+#   qmps = tnopt_qmps.optimize(n=0, ftol= 2.220e-10, gtol= 1e-10)
+  save_to_disk(qmps, "Store/qmps")
+  save_to_disk(qmps, "Store/qmpsGuess")
+  #save_to_disk(qmps, "Store/qmeraGuess")
+
+
+
+
+#  
+#  file = open("Data/QmpsPoints.txt", "w")
+#  for index in range(len(y)):
+#     file.write( str(index) + "  "+ str(y[index])+ "  "+ str(abs((y[index]-E_exact)/E_exact)) + "\n")
+#  file.close()
+
+
+
+
+
+
+
+
+
+def exp_ham_Tylor(L, MPO, delta, order_expan=2, bra_index='b',ket_index='k', cutoff_val=1e-10, max_bond_val=50):
+
+
+ print ("delta", delta, "order_expan", order_expan)
+ 
+ MPO_0=MPO*1.0
+ for i in range(L):
+  if i==0:
+   t=list(MPO[i].inds)
+   MPO_0[i].modify(inds=[ t[0], f'%s{i}' %ket_index, f'%s{i}' %bra_index])
+  elif i==L-1:
+   t=list(MPO[i].inds)
+   MPO_0[i].modify(inds=[ t[0], f'%s{i}' %ket_index, f'%s{i}' %bra_index])
+  else:
+   t=list(MPO[i].inds)
+   MPO_0[i].modify(inds=[ t[0], t[1], f'%s{i}' %ket_index, f'%s{i}' %bra_index])
+
+
+ MPO_result=MPO_0*0.0
+ for i in range(order_expan):
+  if i==0:
+   MPO_result=MPO_identity(L, phys_dim=2, cyclic=False )
+  elif i==1:
+   MPO_result=MPO_result+MPO_0*((delta**(i))/math.factorial(i))   
+   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+  else:
+   MPO_i=MPO_0*1.0
+   MPO_j=MPO_0*1.0
+   for j in range(i-1):
+    MPO_i=MPO_i.apply(MPO_j)
+
+    MPO_i.compress(  max_bond=max_bond_val, cutoff=cutoff_val )
+   MPO_result=MPO_result+MPO_i*((delta**(i))/math.factorial(i))
+   MPO_result.compress(  max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+ norm=(MPO_result @ MPO_result.H)**(0.5)
+ print("norm", norm)
+ MPO_result.show()
+ #MPO_result=MPO_result*(1./norm)
+ #MPO_result.show()
+
+ 
+ MPO_0_H=MPO_result*1.0
+ for i in range(L):
+  if i==0:
+   t=MPO_result[i]*1.0
+   ind_list=list(MPO_result[i].inds)
+   t=t.transpose(ind_list[0], f'%s{i}' %bra_index, f'%s{i}' %ket_index)
+   MPO_0_H[i].modify(data=t.H.data)
+  elif i==L-1:
+   t=MPO_result[i]*1.0
+   ind_list=list(MPO_result[i].inds)
+   t=t.transpose(ind_list[0],  f'%s{i}' %bra_index, f'%s{i}' %ket_index)
+   MPO_0_H[i].modify(data=t.H.data)
+  else:
+   t=MPO_result[i]*1.0
+   ind_list=list(MPO_result[i].inds)
+   t=t.transpose(ind_list[0], ind_list[1], f'%s{i}' %bra_index, f'%s{i}' %ket_index)
+   MPO_0_H[i].modify(data=t.H.data)
+
+ return   MPO_result, MPO_0_H
+
+
+
+
 
 
 
@@ -1898,7 +2812,7 @@ def  H_terms_Hisenberg(L):
  return list_sites, list_inter
 
 
-def   auto_diff_qmps_local( ):
+def  auto_diff_qmps_local( ):
 
  J_l=[]
  L_L=2**4
@@ -2103,123 +3017,6 @@ def Smart_guessdmrg(qmps, tag, L_L, Qbit, val_iden=0.00):
 
 
 
-
-def DMRG_qmps( ):
-
- relative_error_DMRG=[]
- relative_error_p=[]
- relative_error=[]
- J_l=[]
- L_L=16
- Qbit=4
- Depth=4
- D=16
- depth_total_f=8
-
- J=1.0
- h=1.0
- U=5.0
- t=1.0
- mu=0.
- print ("info", "L_L", L_L , "Qbit", Qbit, "Depth", Depth ,"D",D, "depth_total", depth_total_f)
- #complex128, float64
-
-
- qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=90)
- qmps.unitize_(method='mgs')
-
- #qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=0 )
- #qmps.unitize_(method='mgs')
-# 
-# 
-#  qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", n_q_mera=2,seed_init=90 )
-#  qmps.unitize_(method='mgs')
-# 
-#  qmps, tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall',seed_init=90) 
-#  qmps.unitize_(method='mgs')
-
-
- qmps.draw( color=[f"lay{i}" for i in range(L_L)],  show_inds=False, show_tags=False, iterations=600, k=None, fix=None, figsize=(60, 60) , legend=True, return_fig=True, node_size=700 , edge_scale=6, highlight_inds=( ), initial_layout='spectral', edge_alpha=0.6333333333333333,)
- plt.savefig('qmps_dmrg.pdf')
- plt.clf()
-
-
-
- #print (qmps_brickwall)
- opt = ctg.ReusableHyperOptimizer(
-     progbar=True,
-     reconf_opts={},
-     max_repeats=20,
-     parallel=True,
-     directory="cash/"
- )
- #opt='auto-hq'
-
-
- MPO_ten, MPO_origin, E_exact, p_DMRG, H_ham_list=make_Hamiltonian( L_L, J, h ,U, t, mu)
-
-
-
- #qmps=Smart_guessdmrg(qmps, tag, L_L, Qbit, val_iden=0.00)
- psi_h=qmps.H 
- qmps.align_(MPO_origin, psi_h)
- print ("E_init", ( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq'))
- #save_to_disk(qmps, "Store/qmpsGuess")
-
-
-
-
- coupling=-0.0
- for iter in range(1):
-  coupling=coupling+0.05
-  J=1.0
-  h=coupling*1.0
-  MPO_ten, MPO_origin, E_exact, p_DMRG, H_ham_list=make_Hamiltonian( L_L, J, h ,U, t, mu)
-
-  print("L", L_L,"exact", E_exact)
-  print("qmps")
-  #qmps=load_from_disk("Store/qmpsdmrg")
-  qmps_fidel, qmps_iter, qmps, E_qmps_brickwall=DMRG_style(p_DMRG, tag, qmps, MPO_origin, MPO_ten, L_L, E_exact, N_iter=8000, N_iter_inner=1, opt_method=opt)
-  save_to_disk(qmps, "Store/qmpsdmrg")
-  save_to_disk(qmps, "Store/qmpsGuessdmrg")
-
-
-
-  print("DMRG")
-  dmrg = DMRG2(MPO_origin, bond_dims=[D], cutoffs=1e-10) 
-  dmrg.solve(tol=1e-8, verbosity=0 )
-  E_DMRG=dmrg.energy
-  print( "DMRG", "D", D, "Energy", E_DMRG)
-
-
-
-  relative_error.append( abs((E_qmps_brickwall[-1]-E_exact)/E_exact))
-  relative_error_DMRG.append( abs((E_DMRG-E_exact)/E_exact))
-  J_l.append(coupling)
-  print (J_l, relative_error, "\n",relative_error_p, "\n", relative_error_DMRG)
-
-
-
- file = open("Data/QmpsPointdmrg.txt", "w")
- for index in range(len(E_qmps_brickwall)):
-    file.write(str(index) + "  "+ str(E_qmps_brickwall[index])+ "  "+ str(abs((E_qmps_brickwall[index]-E_exact)/E_exact)) + "\n")
- file.close()
-
-
- y_list=[  abs((E_qmps_brickwall[i]-E_exact)/E_exact)  for i in range(len(E_qmps_brickwall)) ]
- x_list=[ i for i in range(len(E_qmps_brickwall)) ]
-
-
- plt.loglog(x_list,y_list, 'o', color = '#c30be3', label=r'qmps-brikwall, $n_q=2, N_{lay}=4$')
-
- plt.title('qmps')
- plt.ylabel(r'$\delta$ E')
- plt.xlabel(r'$h$')
- #plt.axhline(1.149e-07, color='black', label='D=8')
- plt.legend(loc='upper left')
- plt.grid(True)
- plt.savefig('DMRG-plot.pdf')
- plt.clf()
 
 
 
@@ -2467,7 +3264,7 @@ def   make_Hamiltonian( L, J, h , U, t, mu):
 
 
 
- dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 200, 200, 300], cutoffs=1e-11)
+ dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150], cutoffs=1e-11)
  #print (dmrg)
  #dmrg.opts(local_eig_backend='slepc')
  dmrg.opts['local_eig_backend'] = 'SCIPY'
@@ -2478,6 +3275,7 @@ def   make_Hamiltonian( L, J, h , U, t, mu):
  #print("DMRG=", dmrg.energy)
  E_exact=dmrg.energy
  p_0=dmrg.state
+ print("DMRG_state=", p_0.show())
 
 #  T_u=qtn.TensorNetwork(MPO_origin)
 #  list_ket=[  f'k{i}'  for i in range(L)]
@@ -2504,7 +3302,7 @@ def   make_Hamiltonian( L, J, h , U, t, mu):
 
 
 
-def mpo_Fermi_Hubburd(L, U, t, mu):
+def  mpo_Fermi_Hubburd(L, U, t, mu):
 
  #print ( "L,", L, "U,", U, "t,", t,  "mu,", mu)
  We = np.zeros([1, 1, 2, 2], dtype='float64')
@@ -2640,6 +3438,291 @@ def mpo_Fermi_Hubburd(L, U, t, mu):
 
 
 
+def  mpo_Fermi_Hubburd_inf(L, U, t, mu):
+
+ #print ( "L,", L, "U,", U, "t,", t,  "mu,", mu)
+ We = np.zeros([1, 1, 2, 2], dtype='float64')
+ Wo = np.zeros([1, 1, 2, 2], dtype='float64')
+
+ Z = qu.pauli('Z')
+ X = qu.pauli('X')
+ Y = qu.pauli('Y')
+ I = qu.pauli('I')
+
+
+ S_up=(X+1.0j*Y)*(0.5)
+ S_down=(X-1.0j*Y)*(0.5)
+
+ S_up=S_up.astype('float64')
+ S_down=S_down.astype('float64')
+ Z=Z.astype('float64')
+
+
+ MPO_I=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+ MPO_f=MPO_result*0.0
+
+
+ max_bond_val=200
+ cutoff_val=1.0e-12
+ if abs(U) > 1.0e-9:
+  for i in range(L): 
+   Wl = np.zeros([ 1, 2, 2], dtype='float64')
+   W = np.zeros([1, 1, 2, 2], dtype='float64')
+   Wr = np.zeros([ 1, 2, 2], dtype='float64')
+   
+   Wl[ 0,:,:]=S_up@S_down
+   W[ 0,0,:,:]=S_up@S_down
+   Wr[ 0,:,:]=S_up@S_down
+
+
+   W_list=[Wl/2.]+[W]*(2*L-2)+[Wr/2.]
+
+   MPO_I=MPO_identity(2*L, phys_dim=2 )
+   MPO_I[2*i].modify(data=W_list[2*i])
+   MPO_I[2*i+1].modify(data=W_list[2*i+1])
+   MPO_result=MPO_result+MPO_I
+   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+  MPO_f=MPO_result*U
+  MPO_f.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+ if abs(mu) > 1.0e-9:
+  for i in range(L):
+   Wl = np.zeros([ 1, 2, 2], dtype='float64')
+   W = np.zeros([1, 1, 2, 2], dtype='float64')
+   Wr = np.zeros([ 1, 2, 2], dtype='float64')
+   Wl[ 0,:,:]=S_up@S_down
+   W[ 0,0,:,:]=S_up@S_down
+   Wr[ 0,:,:]=S_up@S_down
+
+   W_list=[Wl/2]+[W/2]+[W]*(2*L-4)+[W/2]+[Wr/2]
+
+   MPO_I=MPO_identity(2*L, phys_dim=2 )
+   MPO_I[2*i].modify(data=W_list[2*i])
+   MPO_result=MPO_result+MPO_I
+   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+   MPO_I=MPO_identity(2*L, phys_dim=2 )
+   MPO_I[2*i+1].modify(data=W_list[2*i+1])
+   MPO_result=MPO_result+MPO_I
+   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+  MPO_f=MPO_f+MPO_result*(-mu)
+  MPO_f.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+ if abs(t) > 1.0e-9:
+  for i in range(L-1):
+    Wl = np.zeros([ 1, 2, 2], dtype='float64')
+    W = np.zeros([1, 1, 2, 2], dtype='float64')
+    Wr = np.zeros([ 1, 2, 2], dtype='float64')
+
+    Wl[ 0,:,:]=S_up
+    W[ 0,0,:,:]=S_up
+    Wr[ 0,:,:]=S_up
+    W_1=[Wl]+[W]*(2*L-2)+[Wr]
+
+    Wl = np.zeros([ 1, 2, 2], dtype='float64')
+    W = np.zeros([1, 1, 2, 2], dtype='float64')
+    Wr = np.zeros([ 1, 2, 2], dtype='float64')
+
+    Wl[ 0,:,:]=S_down
+    W[ 0,0,:,:]=S_down
+    Wr[ 0,:,:]=S_down
+    W_2=[Wl]+[W]*(2*L-2)+[Wr]
+
+
+    MPO_I=MPO_identity(2*L, phys_dim=2 )
+    MPO_I[2*i].modify(data=W_1[2*i])
+    MPO_I[2*i+2].modify(data=W_2[2*i+2])
+    MPO_result=MPO_result+MPO_I
+    MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+    MPO_I=MPO_identity(2*L, phys_dim=2 )
+    MPO_I[2*i].modify(data=W_2[2*i])
+    MPO_I[2*i+2].modify(data=W_1[2*i+2])
+    MPO_result=MPO_result+MPO_I
+    MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+    MPO_I=MPO_identity(2*L, phys_dim=2 )
+    MPO_I[2*i+1].modify(data=W_1[2*i+1])
+    MPO_I[2*i+3].modify(data=W_2[2*i+3])
+    MPO_result=MPO_result+MPO_I
+    MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+    MPO_I=MPO_identity(2*L, phys_dim=2 )
+    MPO_I[2*i+1].modify(data=W_2[2*i+1])
+    MPO_I[2*i+3].modify(data=W_1[2*i+3])
+    MPO_result=MPO_result+MPO_I
+    MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+ MPO_f=MPO_f+MPO_result*(t)
+ MPO_f.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+ return MPO_f
+
+
+
+
+
+def mpo_particle_inf(L):
+
+ We = np.zeros([1, 1, 2, 2], dtype='float64')
+ Wo = np.zeros([1, 1, 2, 2], dtype='float64')
+
+ Z = qu.pauli('Z')
+ X = qu.pauli('X')
+ Y = qu.pauli('Y')
+ I = qu.pauli('I')
+
+
+ S_up=(X+1.0j*Y)*(0.5)
+ S_down=(X-1.0j*Y)*(0.5)
+
+ S_up=S_up.astype('float64')
+ S_down=S_down.astype('float64')
+ Z=Z.astype('float64')
+
+
+ MPO_I=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+
+ max_bond_val=200
+ cutoff_val=1.0e-12
+
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+ for i in range(L):
+  Wl = np.zeros([ 1, 2, 2], dtype='float64')
+  W = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wr = np.zeros([ 1, 2, 2], dtype='float64')
+  Wl[ 0,:,:]=S_up@S_down
+  W[ 0,0,:,:]=S_up@S_down
+  Wr[ 0,:,:]=S_up@S_down
+
+  W_list=[Wl/2]+[W/2]+[W]*(2*L-4)+[W/2]+[Wr/2]
+
+  MPO_I=MPO_identity(2*L, phys_dim=2 )
+  MPO_I[2*i].modify(data=W_list[2*i])
+  MPO_result=MPO_result+MPO_I
+  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+  MPO_I=MPO_identity(2*L, phys_dim=2 )
+  MPO_I[2*i+1].modify(data=W_list[2*i+1])
+  MPO_result=MPO_result+MPO_I
+  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+ return MPO_result
+
+
+
+
+
+
+def mpo_spin_inf(L):
+
+ We = np.zeros([1, 1, 2, 2], dtype='float64')
+ Wo = np.zeros([1, 1, 2, 2], dtype='float64')
+
+ Z = qu.pauli('Z')
+ X = qu.pauli('X')
+ Y = qu.pauli('Y')
+ I = qu.pauli('I')
+
+
+ S_up=(X+1.0j*Y)*(0.5)
+ S_down=(X-1.0j*Y)*(0.5)
+
+ S_up=S_up.astype('float64')
+ S_down=S_down.astype('float64')
+ Z=Z.astype('float64')
+
+
+ MPO_I=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+
+ max_bond_val=200
+ cutoff_val=1.0e-12
+
+ MPO_result=MPO_identity(2*L, phys_dim=2)
+ MPO_result=MPO_result*0.0
+
+ for i in range(L):
+  Wl = np.zeros([ 1, 2, 2], dtype='float64')
+  W = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wr = np.zeros([ 1, 2, 2], dtype='float64')
+  Wl[ 0,:,:]=S_up@S_down
+  W[ 0,0,:,:]=S_up@S_down
+  Wr[ 0,:,:]=S_up@S_down
+
+  W_list=[Wl/2]+[W/2]+[W]*(2*L-4)+[W/2]+[Wr/2]
+
+  MPO_I=MPO_identity(2*L, phys_dim=2 )
+  MPO_I[2*i].modify(data=W_list[2*i])
+  MPO_result=MPO_result+MPO_I
+  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+
+ MPO_result1=MPO_identity(2*L, phys_dim=2)
+ MPO_result1=MPO_result*0.0
+
+ for i in range(L):
+  Wl = np.zeros([ 1, 2, 2], dtype='float64')
+  W = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wr = np.zeros([ 1, 2, 2], dtype='float64')
+  Wl[ 0,:,:]=S_up@S_down
+  W[ 0,0,:,:]=S_up@S_down
+  Wr[ 0,:,:]=S_up@S_down
+
+  W_list=[Wl/2]+[W/2]+[W]*(2*L-4)+[W/2]+[Wr/2]
+
+
+  MPO_I=MPO_identity(2*L, phys_dim=2 )
+  MPO_I[2*i+1].modify(data=W_list[2*i+1])
+  MPO_result1=MPO_result1+MPO_I
+  MPO_result1.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+ return MPO_result, MPO_result1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def mpo_particle(L):
 
  We = np.zeros([1, 1, 2, 2], dtype='float64')
@@ -2765,11 +3848,6 @@ def mpo_spin(L):
   MPO_result1.compress( max_bond=max_bond_val, cutoff=cutoff_val )
 
  return MPO_result, MPO_result1
-
-
-
-
-
 
 
 
@@ -2917,18 +3995,17 @@ def DMRG_test( L_int, U, t, mu):
 
  for L_L in range(L_int,L_int+1, 1):
   MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
-  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150, 200,300,400], cutoffs=1.e-12) 
+  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150, 200], cutoffs=1.e-12) 
   dmrg.solve(tol=1.e-12, verbosity=0 )
   psi=dmrg.state
   E_exact=dmrg.energy
-  print("L", L_L, "DMRG", E_exact, "E/L", E_exact/L_L, dmrg.state.show())
+  print("L", L_L//2, "DMRG", E_exact, "E/L", 2.0*E_exact/L_L, dmrg.state.show())
   MPO_p=mpo_particle(L_L//2)
   psi_h=psi.H 
   psi.align_(MPO_p, psi_h)
   N_par=( psi_h & MPO_p & psi).contract(all, optimize='auto-hq') 
-  print ("particles",N_par, "dopping", 2*N_par/L_L )
-  print ("E_f", 2.0*(E_exact+mu*N_par)/L_L  )
-
+  print ("particles", N_par, "dopping", 2*N_par/L_L, "Energy/L", 2.0*(E_exact+mu*N_par)/L_L )
+ return 2.0*(E_exact+mu*N_par)/L_L
 
 
 def   correlation(qmera, L_L, opt):
@@ -3214,4 +4291,127 @@ def   Hubburd_correlation(qmera, L_L, opt):
 
 
 
+
+def   Hubburd_correlation_inf(qmps, L_L,Qbit, b_s, opt):
+
+  Z = qu.pauli('Z')
+  X = qu.pauli('X')
+  Y = qu.pauli('Y')
+  I = qu.pauli('I')
+
+  S_up=(X+1.0j*Y)*(0.5)
+  S_down=(X-1.0j*Y)*(0.5)
+
+  S_up=S_up.astype('float64')
+  S_down=S_down.astype('float64')
+  Z=Z.astype('float64')
+
+  Wz = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wn = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wnr = np.zeros([1, 2, 2], dtype='float64')
+  Wnl = np.zeros([1, 2, 2], dtype='float64')
+
+  Wz = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wz[ 0, 0,:,:]=Z
+
+  Wn = np.zeros([1, 1, 2, 2], dtype='float64')
+  Wn[ 0, 0,:,:]=S_up@S_down
+  Wnr[ 0,:,:]=S_up@S_down
+  Wnl[ 0,:,:]=S_up@S_down
+
+
+
+  MPO_result=MPO_identity(L_L, phys_dim=2)
+  MPO_result=MPO_result*0.0
+  MPO_f=MPO_result*0.0
+  max_bond_val=100
+  cutoff_val=1.0e-10
+
+
+  list_z=[]
+  list_z_local=[]
+  list_r=[]
+  list_i=[]
+  list_j=[]
+
+  sign=[+1,-1]
+  for  sign_val   in    sign:
+   print ("N+, Z-", sign_val)
+   
+   
+   for Length_corr in range(1,4,1):
+    corr_val=0
+    iter_val=0
+    for p in range(0,b_s,2):
+     i_init=2*(Length_corr+1)
+     W_list=[Wnl]+[Wn]*(i_init-2)+[Wnr]
+     MPO_I=MPO_identity(i_init, phys_dim=2)
+     MPO_I[0].modify(data=W_list[0])
+     MPO_II=MPO_identity(i_init, phys_dim=2)
+     MPO_II[1].modify(data=W_list[1])
+     MPO_I=MPO_I+MPO_II*(sign_val)
+
+     i_init=2*(Length_corr+1)
+     W_list=[Wnl]+[Wn]*(i_init-2)+[Wnr]
+     MPO_f=MPO_identity(i_init, phys_dim=2)
+     MPO_f[i_init-1].modify(data=W_list[i_init-1])
+     MPO_ff=MPO_identity(i_init, phys_dim=2)
+     MPO_ff[i_init-2].modify(data=W_list[i_init-2])
+     MPO_f=MPO_f+MPO_ff*(sign_val)
+
+
+
+     MPO_two=MPO_f.apply(MPO_I)
+     MPO_two.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+
+
+     MPO_I.reindex_({ f"k{i}":f"k{L_L+Qbit-i-p-1}"  for i in range( i_init) } )
+     MPO_I.reindex_({ f"b{i}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+     psi_h=qmps.H 
+     psi_h.reindex_({ f"k{L_L+Qbit-i-p-1}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+     A_1=(psi_h  & MPO_I  &  qmps).contract(all, optimize=opt).real
+
+
+
+     MPO_f.reindex_({ f"k{i}":f"k{L_L+Qbit-i-p-1}"  for i in range( i_init) } )
+     MPO_f.reindex_({ f"b{i}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+     psi_h=qmps.H 
+     psi_h.reindex_({ f"k{L_L+Qbit-i-p-1}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+     B_1=(psi_h  & MPO_f  &  qmps).contract(all, optimize=opt).real 
+
+
+     MPO_two.reindex_({ f"k{i}":f"k{L_L+Qbit-i-p-1}"  for i in range( i_init) } )
+     MPO_two.reindex_({ f"b{i}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+
+     psi_h=qmps.H 
+     psi_h.reindex_({ f"k{L_L+Qbit-i-p-1}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
+     C_1=(psi_h  & MPO_two  &  qmps).contract(all, optimize=opt).real 
+
+     print ("+", p, L_L+Qbit-p-i_init+1, L_L+Qbit-p-1, A_1, B_1, C_1, C_1 - A_1*B_1)
+     corr_val+=C_1- A_1*B_1
+     iter_val+=1.
+     list_i.append(L_L+Qbit-p-i_init+1)
+     list_j.append(L_L+Qbit-p-1)
+     list_z_local.append( C_1- A_1*B_1 )
+
+    print ("final_corr", abs(Length_corr),  corr_val/iter_val)
+    list_z.append(corr_val/iter_val)
+    list_r.append(abs(Length_corr))
+
+
+
+   file = open(f"Data/corrZlocal{sign_val}.txt", "w")
+   for index in range(len(list_z_local)):
+      file.write( str(list_i[index])+ "  "+ str(list_j[index])+"  "+ str(list_z_local[index])+ "  " + "\n")
+   file.close()
+
+   file = open(f"Data/corrZ{sign_val}.txt", "w")
+   for index in range(len(list_z)):
+      file.write( str(list_r[index])+"  "+ str(list_z[index])+ "  " + "\n")
+   file.close()
+
+
+
+
+  return  
 

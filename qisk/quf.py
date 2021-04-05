@@ -70,7 +70,6 @@ def make_circuit_gen(circ, param_1, where ):
  
  theta1, phi1, lamda1, theta2, phi2, lamda2, theta3, phi3, lamda3, theta4, phi4, lamda4, t1, t2, t3=param_1
  q0, q1=where
-
  circ=gen_1Q_circ(circ, theta1, phi1, lamda1, q0)
  circ=gen_1Q_circ(circ, theta2, phi2, lamda2, q1)
 
