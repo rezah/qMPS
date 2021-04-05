@@ -33,17 +33,22 @@ mu=U/2
 
 
 circ = QuantumCircuit(L)
+circ_temp = QuantumCircuit(L)
 count_val=0
+
 for i in range(len(list_params)):
      param_1=list_params[i]
      where=list_qubits[i]
      #circ=quf.make_circuit( circ, param_1, where )
      circ=quf.make_circuit_gen(circ, param_1, where )
+     circ_temp=quf.make_circuit_gen(circ_temp, param_1, where )
      if (i+1)%(len(list_tag_block[0]))==0:
       print ("i", i)
       circ.barrier(range(L))
-      circ.draw(output='mpl', filename=f'circuit{count_val}.pdf')
+      circ_temp.barrier(range(L))
+      circ_temp.draw(output='mpl', filename=f'Figs/circuit{count_val}.pdf')
       count_val+=1
+      circ_temp = QuantumCircuit(L)
 
 circ.draw(output='mpl', filename='my_circuit.pdf')
 #plt.savefig('circ.pdf')
