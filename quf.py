@@ -1297,7 +1297,7 @@ def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10, **kw
     if i%2==0:
      list_basis.append("0")
     else:    
-     list_basis.append("0")
+     list_basis.append("1")
     
 #   list_basis=["1", "1"]
 
@@ -1351,17 +1351,17 @@ def Gate_qmps_infinit( ):
  U=6.0
  t=1.0
  mu=U/2.
- #mu=0
+ mu=0
 
 
  Qbit=2
  Depth=4
  D=8
- L_L=10                           
+ L_L=10                        
  b_s=2                          # ABABAB
  l_mpo=2 * ( 2 + 1  )
- GATE="SU4"
- PARAM=15
+ GATE="FSIMG"
+ PARAM=5
 
 
 
@@ -1381,7 +1381,7 @@ def Gate_qmps_infinit( ):
  #qmps.unitize_(method='mgs')
 
 
- #print (list_sharedtags)
+ #print (list_sharedtags, "\n", list_tag_block)
  print ( "Info", "L", L_L, "Qbit", Qbit,"b_s", b_s, "Depth", Depth, "D", D, "U", U, "t", t, "mu", mu, "GATE", GATE)
  print (  "N_gates", len(circ.gates)*3  )
 
@@ -1423,7 +1423,7 @@ def Gate_qmps_infinit( ):
 
 
  tnopt_qmps.optimizer = 'L-BFGS-B' 
- qmps = tnopt_qmps.optimize( n=10, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ qmps = tnopt_qmps.optimize( n=5, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
 
  save_to_disk(qmps, "Store/mps")
  
@@ -1438,7 +1438,7 @@ def Gate_qmps_infinit( ):
  print  ("E_f", E_f, (E_f+N_par*mu)  / ( (l_mpo/2) - 1.) )
 
  local_particle_info(qmps, L_L, Qbit)
- Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt)
+ #Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt)
 
 
 
@@ -1472,12 +1472,18 @@ def Gate_qmps_infinit( ):
  list_qubits=[]
  list_params=[]
  for  i in range(len(list_gates)):
-  t,theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3,qubit1, qubit2=list_gates[i]
-  list_params.append((theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3))
-  list_qubits.append((qubit1, qubit2))
+  if  GATE=="SU4":
+   t,theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3,qubit1, qubit2=list_gates[i]
+   list_params.append((theta1, phi1, lamda1,theta2, phi2, lamda2,theta3, phi3, lamda3,theta4, phi4, lamda4,t1, t2, t3))
+   list_qubits.append((qubit1, qubit2))
+  elif  GATE=="FSIMG":
+   t , theta, Zeta, chi, gamma, phi, qubit1, qubit2 =list_gates[i]
+   list_params.append((theta, Zeta, chi, gamma, phi))
+   list_qubits.append((qubit1, qubit2))
 
- save_to_disk(list_params, "Store/list_params")
- save_to_disk(list_qubits, "Store/list_qubits")
+
+ save_to_disk(list_params, f"Store/list_params{GATE}")
+ save_to_disk(list_qubits, f"Store/list_qubits{GATE}")
  save_to_disk(list_tag_block, "Store/list_tag_block")
 
 

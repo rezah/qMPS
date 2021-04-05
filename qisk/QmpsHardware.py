@@ -10,38 +10,44 @@ from qiskit.visualization import plot_state_paulivec, plot_state_hinton
 from qiskit.visualization import plot_state_qsphere
 import quf
 
+Gate="SU4"
+Gate="FSIMG"
 
-list_params=load_from_disk("list_params")
-#print (list_params)
+list_params=load_from_disk(f"list_params{Gate}")
+print (list_params)
 
-list_qubits=load_from_disk("list_qubits")
+list_qubits=load_from_disk(f"list_qubits{Gate}")
 print (list_qubits)
 
 list_tag_block=load_from_disk("list_tag_block")
-print (list_tag_block[0], len(list_tag_block[0]))
-
+#print (list_tag_block[0], len(list_tag_block[0]))
+#physical + bond qubits
 L=10+2
 U=6.0
 t=1.0
 mu=U/2
 
-
 #Register qubit
-#for i in range(L):
-# if i%2!=0:  
-#  circ.x(i)
 
 
 circ = QuantumCircuit(L)
 circ_temp = QuantumCircuit(L)
 count_val=0
+if Gate=="FSIMG":
+ mu=0
+ for i in range(L):
+  if i%2!=0:  
+   circ.x(i)
 
 for i in range(len(list_params)):
      param_1=list_params[i]
      where=list_qubits[i]
-     #circ=quf.make_circuit( circ, param_1, where )
-     circ=quf.make_circuit_gen(circ, param_1, where )
-     circ_temp=quf.make_circuit_gen(circ_temp, param_1, where )
+     if Gate=="FSIMG":
+         circ=quf.make_circuit( circ, param_1, where )
+         circ_temp=quf.make_circuit(circ_temp, param_1, where )
+     else:
+         circ=quf.make_circuit_gen(circ, param_1, where )
+         circ_temp=quf.make_circuit_gen(circ_temp, param_1, where )
      if (i+1)%(len(list_tag_block[0]))==0:
       print ("i", i)
       circ.barrier(range(L))
@@ -49,6 +55,11 @@ for i in range(len(list_params)):
       circ_temp.draw(output='mpl', filename=f'Figs/circuit{count_val}.pdf')
       count_val+=1
       circ_temp = QuantumCircuit(L)
+
+
+
+
+
 
 circ.draw(output='mpl', filename='my_circuit.pdf')
 #plt.savefig('circ.pdf')
@@ -63,7 +74,7 @@ psi  = result_sim.get_statevector(circ, decimals=5)
 MPO_origin=quf.mpo_Fermi_Hubburd(L//2, U, t, mu)
 MPO_N=quf.mpo_particle(L//2)
 MPO_up, MPO_down=quf.mpo_spin(L//2)
-print ("E_exact", -6.3474)
+#print ("E_exact", -6.3474)
 print (  "E=", psi.conj().T @ MPO_origin.to_dense() @ psi)
 print (  "N=", psi.conj().T @ MPO_N.to_dense() @ psi)
 print (  "Up=", psi.conj().T @ MPO_up.to_dense() @ psi)
