@@ -70,19 +70,19 @@ poly1 = np.poly1d(coeffs)
 
 
 
-# R=np.loadtxt("qmpsp.txt")
-# xqmpsp=R[:,0]
-# yqmpsp=R[:,2]
-# errorqmpsp=R[:,3]
-# logx = np.log(yqmpsp)
-# logy = np.log(errorqmpsp)
-# yfitqmpsp = lambda yqmpsp: np.exp(poly3(np.log(yqmpsp)))
-# coeffs = np.polyfit(logx,logy,deg=1)
-# poly3 = np.poly1d(coeffs)
+R=np.loadtxt("qmpsp.txt")
+xqmpsp=R[:,0]
+yqmpsp=R[:,2]
+errorqmpsp=R[:,3]
+logx = np.log(yqmpsp)
+logy = np.log(errorqmpsp)
+yfitqmpsp = lambda yqmpsp: np.exp(poly3(np.log(yqmpsp)))
+coeffs = np.polyfit(logx,logy,deg=1)
+poly3 = np.poly1d(coeffs)
 
 
 
-R=np.loadtxt("qmpsbq5.txt")
+R=np.loadtxt("qmpspq5.txt")
 xqmpsbq5=R[:,0]
 yqmpsbq5=R[:,2]
 errorqmpsbq5=R[:,3]
@@ -102,19 +102,14 @@ y_rand2=np.arange(1500, 5.0e4)
 
 #fig=plt.figure(figsize=(5,8))
 
-plt.loglog( y_rand, yfit(y_rand)  , '--', color = '#e90ff5' )
-#plt.loglog(y_rand,yfitp(y_rand),'-.', color = '#e30b69')
-plt.loglog(y_rand1,yfitqmpsb(y_rand1) ,'--',  color = '#cf729d' )
-#plt.loglog(y_rand,yfitqmpsp(y_rand) ,'-.',  color = '#9820e3' )
+plt.loglog(y_rand,yfitp(y_rand),'-.', color = '#e30b69')
+plt.loglog(y_rand,yfitqmpsp(y_rand) ,'-.',  color = '#cf729d' )
 plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',  color = '#c74294' )
-
 plt.loglog(y_rand2,yfitDMRG(y_rand2) ,'--',  color = '#0f67f5' )
 
 
-plt.loglog( y, error, 'o', color = '#e90ff5', label='brickwall')
-#plt.loglog( yp, errorp, 'o', color = '#e30b69', label='ladder')
-plt.loglog( yqmpsb, errorqmpsb,'s', color = '#cf729d', label='qmps, q=4')
-#plt.loglog( yqmpsp, errorqmpsp,'P', color = '#9820e3', label='qmps-ld, q=4')
+plt.loglog( yp, errorp, 'o', color = '#e30b69', label='ladder')
+plt.loglog( yqmpsp, errorqmpsp,'s', color = '#cf729d', label='qmps, q=4')
 plt.loglog( yqmpsbq5, errorqmpsbq5,'v', color = '#c74294', label='qmps, q=5')
 plt.loglog( yg, errorg, 'H', color = '#0f67f5', label='mps-dmrg')
 
@@ -126,12 +121,12 @@ plt.xlabel(r'$parameters$',fontsize=12)
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
 
-plt.xlim([500,40000])
+plt.xlim([700,40000])
 plt.ylim([5.e-8, 1.e-1])
 
 plt.legend(frameon=False)
 plt.legend(loc='upper right')
 
 plt.grid(True)
-plt.savefig('qmps-plot.pdf')
+plt.savefig('qmps-p.pdf')
 plt.clf()

@@ -248,16 +248,16 @@ def qmps_f(L=16, in_depth=2, n_Qbit=3, data_type='float64', qmps_structure="bric
 
 
    if canon=="left":
-#     for i in range(0,n_Qbit,1):
-#      #print ("Qbit_0", i)
-#      Qubit_ara=i
-#      if qmps_structure=="brickwall":
-#       n_apply, list_u3=range_unitary(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
-#      elif qmps_structure=="pollmann":
-#       n_apply, list_u3=range_unitary_pollmann(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
-#      elif qmps_structure=="mera":
-#       n_apply, list_u3=range_unitary(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
-# 
+    for i in range(0,n_Qbit,1):
+     #print ("Qbit_0", i)
+     Qubit_ara=i
+     if qmps_structure=="brickwall":
+      n_apply, list_u3=range_unitary(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
+     elif qmps_structure=="pollmann":
+      n_apply, list_u3=range_unitary_pollmann(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
+     elif qmps_structure=="mera":
+      n_apply, list_u3=range_unitary(psi, 0, n_apply, list_u3, in_depth, i,data_type,seed_val, Qubit_ara)
+
 
 
 
@@ -1387,7 +1387,7 @@ def Gate_qmps_infinit( ):
 
 
  qmps.draw(color=[i  for i in list_sharedtags ], iterations=600, figsize=(40, 80),return_fig=True,node_size=1200,edge_scale=6,initial_layout='spectral', edge_alpha=0.633)
- plt.savefig('Gate.pdf')
+ plt.savefig('plot/Gate.pdf')
  plt.clf()
 
 
@@ -2176,36 +2176,37 @@ def auto_diff_qmps( ):
 
  U=3.0
  t=1.0
- mu=U/2.
+ mu=U/10
 
  opt="auto-hq"
  J_l=[]
- L_L=16
- Qbit=3
- Depth=4
+ L_L=12 
+ Qbit=2
+ Depth=1
  D=64
- depth_total_f=1
+ depth_total_f=4
 
  print ( "Info_QMPS", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
 
 
- qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
- qmps.unitize_(method='mgs')
+# qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='pollmann', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
+
+# qmps.unitize_(method='mgs')
 
  #print ("Defined qmps", qmps)
 
 #  qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=1, internal_mera="brickwall",n_q_mera=2 )
 #  qmps.unitize_(method='mgs')
 
-# qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=0 )
-# qmps.unitize_(method='mgs')
+ qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=0 )
+ qmps.unitize_(method='mgs')
 
  #qmps, tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall',seed_init=90) 
  #qmps.unitize_(method='mgs')
 
- print ( "number_gates", len(tag) )
+ print ( "number_gates", len(tag), len(tag)*15 )
 
- qmps.draw( color=[f"lay{i}" for i in range(L_L)], iterations=600, figsize=(80, 80),  return_fig=True,node_size=700 , edge_scale=6, initial_layout='spectral', edge_alpha=0.633)
+ qmps.draw( color=[f"lay{i}" for i in range(L_L)], iterations=600, figsize=(80, 80),  return_fig=True,node_size=7600 , edge_scale=7, initial_layout='spectral', edge_alpha=0.833)
  plt.savefig('qmps.pdf')
  plt.clf()
 
@@ -2227,7 +2228,7 @@ def auto_diff_qmps( ):
   #MPO_origin=mpo_longrange_Heisenberg(L_L)
   #DMRG_test( L_L, U, t, mu)
   #print ("MPO", MPO_origin.show())
-  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150], cutoffs=1.e-12) 
+  dmrg = DMRG2(MPO_origin, bond_dims=[10, 20, 60, 80, 100, 150, 200,300], cutoffs=1.e-12) 
   dmrg.solve(tol=1.e-12, verbosity=0 )
   E_exact=dmrg.energy
   p_DMRG=dmrg.state
@@ -2251,7 +2252,7 @@ def auto_diff_qmps( ):
   tnopt_qmps.optimizer = 'L-BFGS-B' 
   #tnopt_qmps.optimizer = 'CG' 
   print ( tnopt_qmps.optimizer )
-  qmps = tnopt_qmps.optimize(n=1500 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  qmps = tnopt_qmps.optimize(n=10 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
   #qmps = tnopt_qmps.optimize_basinhopping(n=100, nhop=10, temperature=0.5 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 1, disp=False)
 
 
@@ -2275,12 +2276,12 @@ def auto_diff_qmps( ):
   E_final=( psi_h & MPO_origin & qmps).contract(all, optimize='auto-hq').real
   print ("E_final", E_final,  abs((E_final-E_exact)/E_exact) )
 
-
-  print("DMRG")
-  dmrg = DMRG2(MPO_origin, bond_dims=[2, D], cutoffs=1e-10) 
-  dmrg.solve(tol=1e-8, verbosity=0 )
-  E_DMRG=dmrg.energy
-  print( "DMRG", D,  E_DMRG)
+  for D in range(4,80,4):
+   print("DMRG")
+   dmrg = DMRG2(MPO_origin, bond_dims=[2,D//2, D], cutoffs=1e-10) 
+   dmrg.solve(tol=1e-8, verbosity=0 )
+   E_DMRG=dmrg.energy
+   print( "DMRG", D, (2)*(4*D*D-1)+(2)*(3*D-1)+(L_L-4)*(3*D*D-1), abs(E_DMRG-E_exact)/abs(E_exact))
 
 
 
@@ -3473,7 +3474,7 @@ def  mpo_Fermi_Hubburd_inf(L, U, t, mu):
  max_bond_val=200
  cutoff_val=1.0e-12
  if abs(U) > 1.0e-9:
-  for i in range(L): 
+  for i in range(L-1): 
    Wl = np.zeros([ 1, 2, 2], dtype='float64')
    W = np.zeros([1, 1, 2, 2], dtype='float64')
    Wr = np.zeros([ 1, 2, 2], dtype='float64')
@@ -3483,7 +3484,7 @@ def  mpo_Fermi_Hubburd_inf(L, U, t, mu):
    Wr[ 0,:,:]=S_up@S_down
 
 
-   W_list=[Wl/2.]+[W]*(2*L-2)+[Wr/2.]
+   W_list=[Wl]+[W]*(2*L-1)
 
    MPO_I=MPO_identity(2*L, phys_dim=2 )
    MPO_I[2*i].modify(data=W_list[2*i])
