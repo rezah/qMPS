@@ -22,7 +22,7 @@ list_qubits=load_from_disk(f"list_qubits{Gate}")
 list_tag_block=load_from_disk("list_tag_block")
 #print (list_tag_block[0], len(list_tag_block[0]))
 #physical + bond qubits
-L=10+2
+L=12+4
 U=6.0
 t=1.0
 mu=0
@@ -72,119 +72,119 @@ for i in range(len(list_params)):
 circ.draw(output='mpl', filename='my_circuit.pdf')
 #plt.savefig('circ.pdf')
 #plt.clf()
-backend = Aer.get_backend('statevector_simulator')
-job = execute(circ, backend)
-result_sim = job.result()
-psi  = result_sim.get_statevector(circ, decimals=5)
-
-
-#print ("psi", psi)
-MPO_origin=quf.mpo_Fermi_Hubburd(L//2, U, t, mu)
-MPO_N=quf.mpo_particle(L//2)
-MPO_up, MPO_down=quf.mpo_spin(L//2)
-#print ("E_exact", -6.3474)
-#print (  "E=", psi.conj().T @ MPO_origin.to_dense() @ psi)
-#print (  "N=", psi.conj().T @ MPO_N.to_dense() @ psi)
-#print (  "Up=", psi.conj().T @ MPO_up.to_dense() @ psi)
-#print (  "Down=", psi.conj().T @ MPO_down.to_dense() @ psi)
-
-MPO_I=MPO_identity(L, phys_dim=2)
-MPO_result=MPO_identity(L, phys_dim=2)
-MPO_result=MPO_result*0.0
-MPO_f=MPO_result*0.0
-max_bond_val=200
-cutoff_val=1.0e-12
-
-
-for i in range( L):
-
- MPO_I=MPO_identity(L, phys_dim=2)
- W = np.zeros([ 1, 1, 2, 2])
- Z = qu.pauli('Z')
- X = qu.pauli('X')
- Y = qu.pauli('Y')
- I = qu.pauli('I')
- S_up=(X+1.0j*Y)*(0.5)
- S_down=(X-1.0j*Y)*(0.5)
- Wl = np.zeros([ 1, 2, 2], dtype='float64')
- W = np.zeros([1, 1, 2, 2], dtype='float64')
- Wr = np.zeros([ 1, 2, 2], dtype='float64')
- 
- Wl[ 0,:,:]=S_up@S_down
- W[ 0,0,:,:]=S_up@S_down
- Wr[ 0,:,:]=S_up@S_down
-
-
- W_list=[Wl]+[W]*(L-2)+[Wr]
-
- MPO_I[i].modify(data=W_list[i])
- E_final=psi.conj().T @ MPO_I.to_dense() @ psi  
- print ("i", i, "X", E_final.real )
-
-E_u=0
-for i in range(2):
-  MPO_I=MPO_identity(L, phys_dim=2)
-  MPO_I[2*i].modify(data=W_list[2*i])
-  MPO_I[2*i+1].modify(data=W_list[2*i+1])
-  MPO_I=MPO_I*U
-  E_final2=psi.conj().T @ MPO_I.to_dense() @ psi  
-  print ("i", i, "U", E_final2.real )
-  E_u+=E_final2.real
-
-
-E_t=0
-for i in range(2):
-  Wl = np.zeros([ 1, 2, 2], dtype='float64')
-  W = np.zeros([1, 1, 2, 2], dtype='float64')
-  Wr = np.zeros([ 1, 2, 2], dtype='float64')
-
-  Wl[ 0,:,:]=S_up
-  W[ 0,0,:,:]=S_up
-  Wr[ 0,:,:]=S_up
-  W_1=[Wl]+[W]*(L-2)+[Wr]
-
-  Wl = np.zeros([ 1, 2, 2], dtype='float64')
-  W = np.zeros([1, 1, 2, 2], dtype='float64')
-  Wr = np.zeros([ 1, 2, 2], dtype='float64')
-
-  Wl[ 0,:,:]=S_down
-  W[ 0,0,:,:]=S_down
-  Wr[ 0,:,:]=S_down
-  W_2=[Wl]+[W]*(L-2)+[Wr]
-
-  MPO_I=MPO_identity(L, phys_dim=2 )
-  MPO_I[2*i].modify(data=W_1[2*i])
-  MPO_I[2*i+2].modify(data=W_2[2*i+2])
-  MPO_result=MPO_I*1.0
-  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
-
-  MPO_I=MPO_identity(L, phys_dim=2 )
-  MPO_I[2*i].modify(data=W_2[2*i])
-  MPO_I[2*i+2].modify(data=W_1[2*i+2])
-  MPO_result=MPO_result+MPO_I
-  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
-
-
-  MPO_I=MPO_identity(L, phys_dim=2 )
-  MPO_I[2*i+1].modify(data=W_1[2*i+1])
-  MPO_I[2*i+3].modify(data=W_2[2*i+3])
-  MPO_result=MPO_result+MPO_I
-  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
-
-  MPO_I=MPO_identity(L, phys_dim=2 )
-  MPO_I[2*i+1].modify(data=W_2[2*i+1])
-  MPO_I[2*i+3].modify(data=W_1[2*i+3])
-  MPO_result=MPO_result+MPO_I
-  MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
-  MPO_f=MPO_result*(t)
-  MPO_f.compress( max_bond=max_bond_val, cutoff=cutoff_val )
-
-  E_final1=psi.conj().T @ MPO_f.to_dense() @ psi  
-  print ("i", i, "t", E_final1.real )
-  E_t+=E_final1.real
-
-
-print ("final", E_t,E_u, (E_u+E_t)/2.  )
+# backend = Aer.get_backend('statevector_simulator')
+# job = execute(circ, backend)
+# result_sim = job.result()
+# psi  = result_sim.get_statevector(circ, decimals=5)
+# 
+# 
+# #print ("psi", psi)
+# MPO_origin=quf.mpo_Fermi_Hubburd(L//2, U, t, mu)
+# MPO_N=quf.mpo_particle(L//2)
+# MPO_up, MPO_down=quf.mpo_spin(L//2)
+# #print ("E_exact", -6.3474)
+# #print (  "E=", psi.conj().T @ MPO_origin.to_dense() @ psi)
+# #print (  "N=", psi.conj().T @ MPO_N.to_dense() @ psi)
+# #print (  "Up=", psi.conj().T @ MPO_up.to_dense() @ psi)
+# #print (  "Down=", psi.conj().T @ MPO_down.to_dense() @ psi)
+# 
+# MPO_I=MPO_identity(L, phys_dim=2)
+# MPO_result=MPO_identity(L, phys_dim=2)
+# MPO_result=MPO_result*0.0
+# MPO_f=MPO_result*0.0
+# max_bond_val=200
+# cutoff_val=1.0e-12
+# 
+# 
+# for i in range( L):
+# 
+#  MPO_I=MPO_identity(L, phys_dim=2)
+#  W = np.zeros([ 1, 1, 2, 2])
+#  Z = qu.pauli('Z')
+#  X = qu.pauli('X')
+#  Y = qu.pauli('Y')
+#  I = qu.pauli('I')
+#  S_up=(X+1.0j*Y)*(0.5)
+#  S_down=(X-1.0j*Y)*(0.5)
+#  Wl = np.zeros([ 1, 2, 2], dtype='float64')
+#  W = np.zeros([1, 1, 2, 2], dtype='float64')
+#  Wr = np.zeros([ 1, 2, 2], dtype='float64')
+#  
+#  Wl[ 0,:,:]=S_up@S_down
+#  W[ 0,0,:,:]=S_up@S_down
+#  Wr[ 0,:,:]=S_up@S_down
+# 
+# 
+#  W_list=[Wl]+[W]*(L-2)+[Wr]
+# 
+#  MPO_I[i].modify(data=W_list[i])
+#  E_final=psi.conj().T @ MPO_I.to_dense() @ psi  
+#  print ("i", i, "X", E_final.real )
+# 
+# E_u=0
+# for i in range(2):
+#   MPO_I=MPO_identity(L, phys_dim=2)
+#   MPO_I[2*i].modify(data=W_list[2*i])
+#   MPO_I[2*i+1].modify(data=W_list[2*i+1])
+#   MPO_I=MPO_I*U
+#   E_final2=psi.conj().T @ MPO_I.to_dense() @ psi  
+#   print ("i", i, "U", E_final2.real )
+#   E_u+=E_final2.real
+# 
+# 
+# E_t=0
+# for i in range(2):
+#   Wl = np.zeros([ 1, 2, 2], dtype='float64')
+#   W = np.zeros([1, 1, 2, 2], dtype='float64')
+#   Wr = np.zeros([ 1, 2, 2], dtype='float64')
+# 
+#   Wl[ 0,:,:]=S_up
+#   W[ 0,0,:,:]=S_up
+#   Wr[ 0,:,:]=S_up
+#   W_1=[Wl]+[W]*(L-2)+[Wr]
+# 
+#   Wl = np.zeros([ 1, 2, 2], dtype='float64')
+#   W = np.zeros([1, 1, 2, 2], dtype='float64')
+#   Wr = np.zeros([ 1, 2, 2], dtype='float64')
+# 
+#   Wl[ 0,:,:]=S_down
+#   W[ 0,0,:,:]=S_down
+#   Wr[ 0,:,:]=S_down
+#   W_2=[Wl]+[W]*(L-2)+[Wr]
+# 
+#   MPO_I=MPO_identity(L, phys_dim=2 )
+#   MPO_I[2*i].modify(data=W_1[2*i])
+#   MPO_I[2*i+2].modify(data=W_2[2*i+2])
+#   MPO_result=MPO_I*1.0
+#   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+# 
+#   MPO_I=MPO_identity(L, phys_dim=2 )
+#   MPO_I[2*i].modify(data=W_2[2*i])
+#   MPO_I[2*i+2].modify(data=W_1[2*i+2])
+#   MPO_result=MPO_result+MPO_I
+#   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+# 
+# 
+#   MPO_I=MPO_identity(L, phys_dim=2 )
+#   MPO_I[2*i+1].modify(data=W_1[2*i+1])
+#   MPO_I[2*i+3].modify(data=W_2[2*i+3])
+#   MPO_result=MPO_result+MPO_I
+#   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+# 
+#   MPO_I=MPO_identity(L, phys_dim=2 )
+#   MPO_I[2*i+1].modify(data=W_2[2*i+1])
+#   MPO_I[2*i+3].modify(data=W_1[2*i+3])
+#   MPO_result=MPO_result+MPO_I
+#   MPO_result.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+#   MPO_f=MPO_result*(t)
+#   MPO_f.compress( max_bond=max_bond_val, cutoff=cutoff_val )
+# 
+#   E_final1=psi.conj().T @ MPO_f.to_dense() @ psi  
+#   print ("i", i, "t", E_final1.real )
+#   E_t+=E_final1.real
+# 
+# 
+# print ("final", E_t,E_u, (E_u+E_t)/2.  )
 
 
 

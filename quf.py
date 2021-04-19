@@ -1293,15 +1293,23 @@ def auto_diff_infmps(qmps, MPO, GATE, sharedtags,  L,
 
 def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10, **kwargs):
    list_basis=[]
+#    for i in range(L):
+#     if i%4==0  or (i+1)%4==0:
+#        list_basis.append("0")
+#     else:    
+#        list_basis.append("1")
+#    list_basis=["0"]*n_Qbit+list_basis
+#    print ("init_basis", list_basis)
+# 
+
+
+
    for i in range(L+n_Qbit):
     if i%2==0:
-     list_basis.append("0")
+       list_basis.append("0")
     else:    
-     list_basis.append("1")
-    
-#   list_basis=["1", "1"]
-
-   #list_basis=["1"]*n_Qbit+list_basis
+       list_basis.append("1")
+   #list_basis=["0"]*n_Qbit+list_basis
    print ("init_basis", list_basis)
 
    circ = qtn.Circuit( L+n_Qbit, MPS_computational_state(list_basis))
@@ -1385,10 +1393,10 @@ def Gate_qmps_infinit( ):
  mu=U/2.
  #mu=0
 
- Qbit=2
+ Qbit=4
  Depth=4
  D=8
- L_L=10                        
+ L_L=12                        
  b_s=2                          # ABABAB
  l_mpo=2 * ( 2 + 1  )
  GATE="FSIMG"
@@ -1399,7 +1407,7 @@ def Gate_qmps_infinit( ):
  relative_error=[]
  relative_error_Q=[]
 
- circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=10, gate_type=GATE, len_parma=PARAM)
+ circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=40, gate_type=GATE, len_parma=PARAM)
  qmps=circ.psi
 
  #qmps, list_sharedtags, list_tags=qmps_inf_f(L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=10)
@@ -1454,7 +1462,7 @@ def Gate_qmps_infinit( ):
 
 
  #tnopt_qmps.optimizer = 'L-BFGS-B' 
- #qmps = tnopt_qmps.optimize( n=1, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ #qmps = tnopt_qmps.optimize( n=50, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
 
  save_to_disk(qmps, "Store/mps")
  save_to_disk(qmps, "Store/mpsguess")
@@ -1480,18 +1488,18 @@ def Gate_qmps_infinit( ):
 
 
  circ.update_params_from(qmps)
- psi_denc=circ.to_dense()
- #print ("psi_dense,", circ.to_dense(), "\n")
- print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L+Qbit) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
- MPO_origin=mpo_Fermi_Hubburd((L_L+Qbit)//2, U, t, mu)
- MPO_N=mpo_particle((L_L+Qbit)//2)
- MPO_up, MPO_down=mpo_spin((L_L+Qbit)//2)
- print ("E_exact", -6.3474)
- print (  "E=", psi_denc.conj().T @ MPO_origin.to_dense() @ psi_denc)
- print (  "N=", psi_denc.conj().T @ MPO_N.to_dense() @ psi_denc)
- print (  "Up=", psi_denc.conj().T @ MPO_up.to_dense() @ psi_denc)
- print (  "Down=", psi_denc.conj().T @ MPO_down.to_dense() @ psi_denc)
-
+#  psi_denc=circ.to_dense()
+#  #print ("psi_dense,", circ.to_dense(), "\n")
+#  print ("E_dense,", "\n", psi_denc.H @ ham_heis(L_L+Qbit) @ psi_denc, "\n", "norm",  psi_denc.H @ psi_denc)
+#  MPO_origin=mpo_Fermi_Hubburd((L_L+Qbit)//2, U, t, mu)
+#  MPO_N=mpo_particle((L_L+Qbit)//2)
+#  MPO_up, MPO_down=mpo_spin((L_L+Qbit)//2)
+#  print ("E_exact", -6.3474)
+#  print (  "E=", psi_denc.conj().T @ MPO_origin.to_dense() @ psi_denc)
+#  print (  "N=", psi_denc.conj().T @ MPO_N.to_dense() @ psi_denc)
+#  print (  "Up=", psi_denc.conj().T @ MPO_up.to_dense() @ psi_denc)
+#  print (  "Down=", psi_denc.conj().T @ MPO_down.to_dense() @ psi_denc)
+# 
 
 
  #print (  qmps["GATE_0"].params,  qmps["GATE_1"].params)
@@ -4408,7 +4416,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt):
      MPO_f[i_init-1].modify(data=W_list[i_init-1])
      MPO_ff=MPO_identity(i_init, phys_dim=2)
      MPO_ff[i_init-2].modify(data=W_list[i_init-2])
-     MPO_f=MPO_f+MPO_ff*(sign_val)
+     MPO_f=MPO_f*(sign_val)+MPO_ff
 
      MPO_two=MPO_f.apply(MPO_I)
      MPO_two.compress( max_bond=max_bond_val, cutoff=cutoff_val )
