@@ -13,16 +13,21 @@ import quf
 Gate="SU4"
 Gate="FSIMG"
 
+list_params_U=load_from_disk(f"list_params_U{Gate}")
+list_qubits_U=load_from_disk(f"list_qubits_U{Gate}")
 list_params=load_from_disk(f"list_params{Gate}")
-#print (list_params)
-
 list_qubits=load_from_disk(f"list_qubits{Gate}")
-#print (list_qubits)
+n_ancilla=load_from_disk( f"Qbit_rho")
+list_basis=load_from_disk( f"list_basis_cirq")
+
 
 list_tag_block=load_from_disk("list_tag_block")
 #print (list_tag_block[0], len(list_tag_block[0]))
 #physical + bond qubits
-L=12+4
+#l+number of qubit+ ancilla
+n_Qbit=4
+l=8
+L=n_Qbit+n_ancilla+l
 U=6.0
 t=1.0
 mu=0
@@ -34,15 +39,43 @@ circ = QuantumCircuit(L)
 circ_temp = QuantumCircuit(L)
 count_val=0
 if Gate=="FSIMG":
- mu=0
- for i in range(L):
-  if i%2!=0:  
+ for i in range(len(list_basis)):
+  if list_basis[i]=="1":
+   #print (i, list_basis[i], list_basis)
    circ.x(i)
    circ_temp.x(i)
+
+
+
+for i in range(len(list_params_U)):
+     param_1=list_params_U[i]
+     where=list_qubits_U[i]
+     #print ("F",where)
+     if Gate=="FSIMG":
+         circ=quf.make_circuit( circ, param_1, where )
+         circ_temp=quf.make_circuit(circ_temp, param_1, where )
+     else:
+         circ=quf.make_circuit_gen(circ, param_1, where )
+         circ_temp=quf.make_circuit_gen(circ_temp, param_1, where )
+
+circ.barrier(range(L))
+circ_temp.barrier(range(L))
+circ_temp.draw(output='mpl', filename='Figs/circuit_rho.pdf')
+circ_temp = QuantumCircuit(L)
+
+
+
 
 for i in range(len(list_params)):
      param_1=list_params[i]
      where=list_qubits[i]
+     t0, t1=where
+     if t0 >= n_Qbit:
+       t0=t0+n_ancilla
+     if t1 >= n_Qbit:
+       t1=t1+n_ancilla
+     where=t0, t1
+     #print ("S",where)
      if Gate=="FSIMG":
          circ=quf.make_circuit( circ, param_1, where )
          circ_temp=quf.make_circuit(circ_temp, param_1, where )
@@ -58,24 +91,17 @@ for i in range(len(list_params)):
       circ_temp = QuantumCircuit(L)
 
 
-      if Gate=="FSIMG":
-       mu=0
-       for i in range(L):
-        if i%2!=0:  
-         circ_temp.x(i)
-
-
 
 
 
 
 circ.draw(output='mpl', filename='my_circuit.pdf')
-#plt.savefig('circ.pdf')
-#plt.clf()
-# backend = Aer.get_backend('statevector_simulator')
-# job = execute(circ, backend)
-# result_sim = job.result()
-# psi  = result_sim.get_statevector(circ, decimals=5)
+plt.savefig('circ.pdf')
+plt.clf()
+backend = Aer.get_backend('statevector_simulator')
+job = execute(circ, backend)
+result_sim = job.result()
+psi  = result_sim.get_statevector(circ, decimals=5)
 # 
 # 
 # #print ("psi", psi)
@@ -96,31 +122,31 @@ circ.draw(output='mpl', filename='my_circuit.pdf')
 # cutoff_val=1.0e-12
 # 
 # 
-# for i in range( L):
-# 
-#  MPO_I=MPO_identity(L, phys_dim=2)
-#  W = np.zeros([ 1, 1, 2, 2])
-#  Z = qu.pauli('Z')
-#  X = qu.pauli('X')
-#  Y = qu.pauli('Y')
-#  I = qu.pauli('I')
-#  S_up=(X+1.0j*Y)*(0.5)
-#  S_down=(X-1.0j*Y)*(0.5)
-#  Wl = np.zeros([ 1, 2, 2], dtype='float64')
-#  W = np.zeros([1, 1, 2, 2], dtype='float64')
-#  Wr = np.zeros([ 1, 2, 2], dtype='float64')
-#  
-#  Wl[ 0,:,:]=S_up@S_down
-#  W[ 0,0,:,:]=S_up@S_down
-#  Wr[ 0,:,:]=S_up@S_down
-# 
-# 
-#  W_list=[Wl]+[W]*(L-2)+[Wr]
-# 
-#  MPO_I[i].modify(data=W_list[i])
-#  E_final=psi.conj().T @ MPO_I.to_dense() @ psi  
-#  print ("i", i, "X", E_final.real )
-# 
+for i in range( L):
+
+ MPO_I=MPO_identity(L, phys_dim=2)
+ W = np.zeros([ 1, 1, 2, 2])
+ Z = qu.pauli('Z')
+ X = qu.pauli('X')
+ Y = qu.pauli('Y')
+ I = qu.pauli('I')
+ S_up=(X+1.0j*Y)*(0.5)
+ S_down=(X-1.0j*Y)*(0.5)
+ Wl = np.zeros([ 1, 2, 2], dtype='float64')
+ W = np.zeros([1, 1, 2, 2], dtype='float64')
+ Wr = np.zeros([ 1, 2, 2], dtype='float64')
+ 
+ Wl[ 0,:,:]=S_up@S_down
+ W[ 0,0,:,:]=S_up@S_down
+ Wr[ 0,:,:]=S_up@S_down
+
+
+ W_list=[Wl]+[W]*(L-2)+[Wr]
+
+ MPO_I[i].modify(data=W_list[i])
+ E_final=psi.conj().T @ MPO_I.to_dense() @ psi  
+ print ("i", i, "X", E_final.real )
+
 # E_u=0
 # for i in range(2):
 #   MPO_I=MPO_identity(L, phys_dim=2)
@@ -190,47 +216,7 @@ circ.draw(output='mpl', filename='my_circuit.pdf')
 
 
 
-# plot_state_city(psi)
-# plt.savefig('psi-city.pdf')
-# plt.clf()
-# 
-# plot_state_hinton(psi)
-# plt.savefig('psi-hinton.pdf')
-# plt.clf()
-# 
-# 
-# plot_state_paulivec(psi, title="My Paulivec", color=['purple', 'orange', 'green'])
-# plt.savefig('psi-paulivec.pdf')
-# plt.clf()
 
 
 
-# backend = Aer.get_backend('unitary_simulator')
-# job = execute(circ, backend)
-# result_sim = job.result()
-# U  = result_sim.get_unitary(circ, decimals=5)
-# print ("U", U, type(U), np.shape(U))
-
-
-
-
-
-
-
-#meas = QuantumCircuit(L, L)
-#meas.barrier(range(L))
-#meas.measure(range(L), range(L))
-#qc = circ + meas
-#qc.draw(output='mpl', filename='finalCirc.pdf')
-
-#backend = Aer.get_backend('statevector_simulator')
-#job = execute(qc, backend, shots=1000)
-#result_sim = job.result()
-
-
-
-
-
-#counts = result_sim.get_counts(qc)
-#print(counts)
 

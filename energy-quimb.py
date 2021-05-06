@@ -17,9 +17,10 @@ if __name__ == '__main__':
 
 
  #quf.Gate_qmps_finite( )
+
+
  quf.Gate_qmps_infinit( )
-
-
+ #quf.imps( )
 
 
 

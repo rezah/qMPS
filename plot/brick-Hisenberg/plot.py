@@ -5,6 +5,18 @@ import numpy as np
 import quimb.tensor as qtn
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
+import matplotlib as mpl
+
+
+mpl.rcParams['xtick.major.size'] = 10
+mpl.rcParams['xtick.major.width'] = 1
+mpl.rcParams['xtick.minor.size'] = 5
+mpl.rcParams['xtick.minor.width'] = 1
+mpl.rcParams['ytick.major.size'] = 10
+mpl.rcParams['ytick.major.width'] = 1
+mpl.rcParams['ytick.minor.size'] = 5
+mpl.rcParams['ytick.minor.width'] = 1
+
 
 def sort_low(error):
  val_min=1.e8
@@ -89,16 +101,16 @@ error13=R[:,2]
 error13=sort_low(error13)   
 
 
-#fig=plt.figure(figsize=(5,8))
+plt.figure(figsize=(8, 6))
 
 
 #plt.loglog( errorr10, '4', color = '#e3360b', label='lay=10, random')
-plt.loglog( error8, 'o', color = '#72cfbb', label='lay=8, good')
+plt.loglog( error8, '-', lw=4,color = '#72cfbb', label=r'$\tau=8$')
 #plt.loglog( error9, '3', color = '#cf729d', label='lay=9, good')
-plt.loglog( errorg10, '>', color = '#0b8de3', label='lay=10, good')
-plt.loglog( error11, '+', color = '#e3570b', label='lay=11, good')
-plt.loglog( error12, '2', color = '#729fcf', label='lay=12, good')
-plt.loglog( error13, '4', color = '#96068a', label='lay=13, good')
+plt.loglog( errorg10, '--',lw=4, color = '#0b8de3', label=r'$\tau=10$')
+plt.loglog( error11, '-.', lw=4,color = '#e3570b', label=r'$\tau=11$')
+plt.loglog( error12, ':',lw=4, color = '#729fcf', label=r'$\tau=12$')
+plt.loglog( error13, '--', lw=4,color = '#96068a', label=r'$\tau=13$')
 
 #plt.loglog( error6, 'x', color = '#e30b69', label='lay=6')
 
@@ -107,16 +119,19 @@ plt.loglog( error13, '4', color = '#96068a', label='lay=13, good')
 
 #plt.loglog( error8r, '2', color = '#cf729d', label='lay=8, random')
 
-plt.title('brickwall circuit')
-plt.ylabel(r'$\delta$ E')
-plt.xlabel(r'$n$')
+#plt.title('brickwall circuit')
+plt.ylabel(r'$\delta$ E',fontsize=20)
+plt.xlabel(r'$iterations$',fontsize=20)
 #plt.axhline(0.00422,color='black', label='D=4')
-#plt.axhline(0.000143, color='black', label='D=8')
-#plt.axhline(0.000355, color='black', label='D=16')
 
-plt.legend(frameon=False)
-plt.legend(loc='upper right')
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.legend(loc="upper right", prop={'size': 18})
 
-plt.grid(True)
+plt.xlim([1,5.5e3])
+plt.ylim([4.2e-3, 3.e-2])
+
+
+#plt.grid(True)
 plt.savefig('qmps-plot.pdf')
 plt.clf()

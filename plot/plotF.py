@@ -5,6 +5,19 @@ import numpy as np
 import quimb.tensor as qtn
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
+import matplotlib as mpl
+
+
+mpl.rcParams['xtick.major.size'] = 10
+mpl.rcParams['xtick.major.width'] = 1
+mpl.rcParams['xtick.minor.size'] = 5
+mpl.rcParams['xtick.minor.width'] = 1
+mpl.rcParams['ytick.major.size'] = 10
+mpl.rcParams['ytick.major.width'] = 1
+mpl.rcParams['ytick.minor.size'] = 5
+mpl.rcParams['ytick.minor.width'] = 1
+
+
 
 def sort_low(error):
  val_min=1.e8
@@ -70,6 +83,23 @@ poly1 = np.poly1d(coeffs)
 
 
 
+
+
+R=np.loadtxt("qmpsbq7F.txt")
+xqmpsbb=R[:,0]
+yqmpsbb=R[:,2]
+errorqmpsbb=R[:,3]
+logx = np.log(yqmpsbb)
+logy = np.log(errorqmpsbb)
+yfitqmpsbb = lambda yqmpsbb: np.exp(poly11(np.log(yqmpsbb)))
+coeffs = np.polyfit(logx,logy,deg=1)
+poly11 = np.poly1d(coeffs)
+
+
+
+
+
+
 R=np.loadtxt("qmpsbq6F.txt")
 xqmpsp=R[:,0]
 yqmpsp=R[:,2]
@@ -97,38 +127,37 @@ poly4 = np.poly1d(coeffs)
 
 
 y_rand=np.arange(390, 5.0e4) 
-y_rand1=np.arange(6400, 8.0e4) 
-y_rand2=np.arange(6500, 8.0e4) 
+y_rand1=np.arange(6400, 20.0e4) 
+y_rand2=np.arange(6500, 20.0e4) 
 
-#fig=plt.figure(figsize=(5,8))
+fig=plt.figure(figsize=(7,7))
 
-plt.loglog( y_rand, yfit(y_rand)  , '--', color = '#e90ff5' )
-plt.loglog(y_rand2,yfitqmpsp(y_rand2) ,'--',  color = '#cf729d' )
-plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',  color = '#c74294' )
-plt.loglog(y_rand2,yfitDMRG(y_rand2) ,'--',  color = '#0f67f5' )
-plt.loglog(y_rand2,yfitqmpsb(y_rand2) ,'--',  color = '#0e9c38' )
+#plt.loglog( y_rand2, yfit(y_rand2)  , '--',lw=4, color = '#e90ff5' )
+#plt.loglog(y_rand2,yfitqmpsp(y_rand2) ,'--',lw=4,  color = '#cf729d' )
+plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#356e6a' )
+#plt.loglog(y_rand2,yfitqmpsbb(y_rand2) ,'--',lw=4,  color = '#cc0000' )
+plt.loglog(y_rand2,yfitqmpsb(y_rand2) ,'--',lw=4,  color = '#a40000' )
 
+plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='DMRG')
 
-
-plt.loglog( y, error, 'o', color = '#e90ff5', label='brickwall')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'v', color = '#c74294', label='qmps, q=5')
-plt.loglog( yqmpsp, errorqmpsp,'s', color = '#cf729d', label='qmps, q=6')
-plt.loglog( yqmpsb, errorqmpsb,'P', color = '#0e9c38', label='qmps, q=8')
-plt.loglog( yg, errorg, 'H', color = '#0f67f5', label='mps-dmrg')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#356e6a', label=r'$qMPS, q=5$')
+plt.loglog( yqmpsp, errorqmpsp,'d', markersize=15,color = '#cf729d', label=r'$qMPS, q=6$')
+plt.loglog( yqmpsbb, errorqmpsbb,'>',markersize=15, color = '#cc0000', label=r'$qMPS, q=7$')
+plt.loglog( yqmpsb, errorqmpsb,'D', markersize=15,color = '#a40000', label=r'$qMPS, q=8$')
 
 
 #plt.title('qmps')
-plt.ylabel(r'$\delta$ E',fontsize=12)
-plt.xlabel(r'$parameters$',fontsize=12)
+plt.ylabel(r'$\delta$ E',fontsize=21)
+plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
-#plt.axhline(0.000143, color='black', label='D=8')
-#plt.axhline(0.000355, color='black', label='D=16')
 
-#plt.xlim([500,40000])
-#plt.ylim([5.e-8, 1.e-1])
 
-plt.legend(frameon=False)
-plt.legend(loc='upper right')
+plt.xlim([4000,120000])
+plt.ylim([5.e-5, 1.e-2])
+
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.legend(loc="lower left", prop={'size': 22})
 
 plt.grid(True)
 plt.savefig('qmps-plotF.pdf')

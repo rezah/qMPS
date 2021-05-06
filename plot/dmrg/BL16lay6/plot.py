@@ -5,6 +5,20 @@ import numpy as np
 import quimb.tensor as qtn
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
+import matplotlib as mpl
+
+
+
+mpl.rcParams['xtick.major.size'] = 10
+mpl.rcParams['xtick.major.width'] = 1
+mpl.rcParams['xtick.minor.size'] = 5
+mpl.rcParams['xtick.minor.width'] = 1
+mpl.rcParams['ytick.major.size'] = 10
+mpl.rcParams['ytick.major.width'] = 1
+mpl.rcParams['ytick.minor.size'] = 5
+mpl.rcParams['ytick.minor.width'] = 1
+
+
 
 def sort_low(error):
  val_min=1.e8
@@ -25,6 +39,8 @@ cg1=R[:,1]
 R=np.loadtxt("cg2.txt")
 cg2=R[:,1]
 
+x_cg=[ i for i in range(1,len(list(cg))+1 ) ]
+x_cg1=[ i for i in range(1,len(list(cg1))+1 ) ]
 
 R=np.loadtxt("dmrgF.txt")
 dmrgF=R[:,1]
@@ -32,6 +48,10 @@ R=np.loadtxt("dmrgF1.txt")
 dmrgF1=R[:,1]
 R=np.loadtxt("dmrgF2.txt")
 dmrgF2=R[:,1]
+
+x_dmrgF=[ i for i in range(1,len(list(dmrgF))+1 ) ]
+x_dmrgF1=[ i for i in range(1,len(list(dmrgF1))+1 ) ]
+
 
 
 R=np.loadtxt("lbfgs.txt")
@@ -45,21 +65,24 @@ lbfgs1=list(lbfgs1)+list(lbfgs1C)
 R=np.loadtxt("lbfgs2.txt")
 lbfgs2=R[:,1]
 
+x_lbfgs=[ i for i in range(1,len(list(lbfgs))+1 ) ]
+x_lbfgs1=[ i for i in range(1,len(list(lbfgs1))+1 ) ]
 
 
 
-plt.figure(figsize=(9, 5))
+
+plt.figure(figsize=(8, 6))
 
 
-#plt.plot( cg, '>', color = '#0b8de3', label='cg-1')
-plt.plot( cg1, '2', color = '#191970', label='cg')
+plt.plot( x_cg, cg, '-', lw=4,color = '#0b8de3', label='cg')
+plt.plot( x_cg1, cg1, '--', lw=4,color = '#0b8de3', label='cg')
 #plt.plot( cg2, 'o', color = '#0b8de3', label='cg-3')
-#plt.plot( dmrgF,'>', color = '#cf729d', label='dmrg-1')
-plt.plot( dmrgF1,'2', color = '#cf729d', label='dmrg')
+plt.plot( x_dmrgF, dmrgF,'-', lw=4,color = '#cf729d', label='dmrg')
+plt.plot( x_dmrgF1,dmrgF1,'--', lw=4,color = '#cf729d', label='dmrg')
 #plt.plot( dmrgF2,'o', color = '#cf729d', label='dmrg-3')
 
-#plt.plot( lbfgs,'>', color = '#c22a0c', label='l-bfgs-b-1')
-plt.plot( lbfgs1,'2', color = '#c22a0c', label='l-bfgs-b')
+plt.plot( x_lbfgs,lbfgs,'-', lw=4,color = '#c22a0c', label='l-bfgs-b')
+plt.plot( x_lbfgs1,lbfgs1,'--', lw=4,color = '#c22a0c', label='l-bfgs-b')
 #plt.plot( lbfgs2,'o', color = '#c22a0c', label='l-bfgs-b-3')
 
 
@@ -75,14 +98,20 @@ plt.xscale('log')
 
 
 #plt.title('qmps')
-plt.ylabel(r'$1-F$')
-plt.xlabel(r'$iterations$')
+plt.ylabel(r'$1-\mathcal{F}$',fontsize=21)
+plt.xlabel(r'$iterations$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
 
-plt.legend(frameon=False)
-plt.legend(loc='upper right')
+
+plt.xlim([1,2000])
+plt.ylim([1.e-1, 1.2e0])
+
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+
+plt.legend(loc="upper right", prop={'size': 18})
 
 plt.grid(True)
 plt.savefig('Brickwall.pdf')

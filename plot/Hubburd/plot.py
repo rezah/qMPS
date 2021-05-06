@@ -27,23 +27,23 @@ def log_f(x, y):
 
 
 
-R=np.loadtxt("corrZ.txt")
-x=R[:,2]
-y=abs(R[:,3])
+R=np.loadtxt("corrspinD16.txt")
+x=R[:,0]
+y=abs(R[:,1])
 
-R=np.loadtxt("corrN.txt")
-xN=R[:,2]
-yN=abs(R[:,3])
+R=np.loadtxt("corrparticleD16.txt")
+xN=R[:,0]
+yN=abs(R[:,1])
 
 
 
-R=np.loadtxt("corrZdmrg.txt")
-xU=R[:,2]
-yU=abs(R[:,3])
+R=np.loadtxt("corrspinQ4.txt")
+xU=R[:,0]
+yU=abs(R[:,1])
 
-R=np.loadtxt("corrNdmrg.txt")
-xUU=R[:,2]
-yUU=abs(R[:,3])
+R=np.loadtxt("corrparticleQ4.txt")
+xUU=R[:,0]
+yUU=abs(R[:,1])
 
 
 
@@ -61,10 +61,10 @@ y_rand=np.arange(1, 4.0e1)
 #plt.loglog(y_rand,yfitqmpsbq5(y_rand) ,'-',  color = '#08c25f' )
 
 
-plt.loglog( x, y, '>', color = '#0b8de3', label='spin, q=4')
-plt.loglog( xN, yN, '4', color = '#0b8de3', label='charge, q=4')
-plt.loglog( xU, yU, 'o', color = '#0b8de3', label='spin, DMRG')
-plt.loglog( xUU, yUU, 'P', color = '#0b8de3', label='charge, DMRG')
+plt.loglog( x, y, '>', color = '#0b8de3', label='spin, D=16')
+plt.loglog( xN, yN, '4', color = '#0b8de3', label='charge, D=16')
+plt.loglog( xU, yU, 'o', color = '#9820e3', label='spin, Q=4')
+plt.loglog( xUU, yUU, 'P', color = '#08c25f', label='charge, Q=4')
 
 
 #plt.loglog( xh, yh, 'H', color = '#9820e3', label='spin, h')

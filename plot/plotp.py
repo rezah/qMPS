@@ -5,6 +5,19 @@ import numpy as np
 import quimb.tensor as qtn
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
+import matplotlib as mpl
+
+
+
+mpl.rcParams['xtick.major.size'] = 10
+mpl.rcParams['xtick.major.width'] = 1
+mpl.rcParams['xtick.minor.size'] = 5
+mpl.rcParams['xtick.minor.width'] = 1
+mpl.rcParams['ytick.major.size'] = 10
+mpl.rcParams['ytick.major.width'] = 1
+mpl.rcParams['ytick.minor.size'] = 5
+mpl.rcParams['ytick.minor.width'] = 1
+
 
 def sort_low(error):
  val_min=1.e8
@@ -100,23 +113,25 @@ y_rand=np.arange(390, 5.0e4)
 y_rand1=np.arange(1400, 5.0e4) 
 y_rand2=np.arange(1500, 5.0e4) 
 
-#fig=plt.figure(figsize=(5,8))
-
-plt.loglog(y_rand,yfitp(y_rand),'-.', color = '#e30b69')
-plt.loglog(y_rand,yfitqmpsp(y_rand) ,'-.',  color = '#cf729d' )
-plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',  color = '#c74294' )
-plt.loglog(y_rand2,yfitDMRG(y_rand2) ,'--',  color = '#0f67f5' )
+fig=plt.figure(figsize=(7,7))
 
 
-plt.loglog( yp, errorp, 'o', color = '#e30b69', label='ladder')
-plt.loglog( yqmpsp, errorqmpsp,'s', color = '#cf729d', label='qmps, q=4')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'v', color = '#c74294', label='qmps, q=5')
-plt.loglog( yg, errorg, 'H', color = '#0f67f5', label='mps-dmrg')
+
+plt.loglog(y_rand,yfitp(y_rand),'-.', lw=4,color = '#e30b69')
+plt.loglog(y_rand,yfitqmpsp(y_rand) ,'-.',lw=4,  color = '#f57900' )
+plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--', lw=4, color = '#a40000' )
+
+plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='DMRG')
+plt.loglog( yp, errorp, 'o', color = '#e30b69',markersize=15, label='QC-l')
+
+plt.loglog( yqmpsp, errorqmpsp,'p',markersize=15, color = '#f57900', label=r'$qMPS, q=4$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#a40000', label=r'$qMPS, q=5$')
+
 
 
 #plt.title('qmps')
-plt.ylabel(r'$\delta$ E',fontsize=12)
-plt.xlabel(r'$parameters$',fontsize=12)
+plt.ylabel(r'$\delta$ E',fontsize=21)
+plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
@@ -124,8 +139,11 @@ plt.xlabel(r'$parameters$',fontsize=12)
 plt.xlim([700,40000])
 plt.ylim([5.e-8, 1.e-1])
 
-plt.legend(frameon=False)
-plt.legend(loc='upper right')
+
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.legend(loc="lower left", prop={'size': 22})
+
 
 plt.grid(True)
 plt.savefig('qmps-p.pdf')
