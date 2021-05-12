@@ -118,6 +118,16 @@ coeffs = np.polyfit(logx,logy,deg=1)
 poly8 = np.poly1d(coeffs)
 
 
+R=np.loadtxt("qmeraQ4.txt")
+#print (R)
+xmera=R[:,0]
+ymera=R[:,2]
+errormera=R[:,3]
+logx = np.log(ymera)
+logy = np.log(errormera)
+yfitmera = lambda qmpsmera: np.exp(poly9(np.log(qmpsmera)))
+coeffs = np.polyfit(logx,logy,deg=1)
+poly9 = np.poly1d(coeffs)
 
 
 y_rand=np.arange(390, 5.0e4) 
@@ -133,8 +143,9 @@ plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#f57900' )
 
 
 plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'$qMPS, n_q=4$')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, n_q=2$')
-plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, n_q=3$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, q=2$')
+plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, q=3$')
+plt.loglog( ymera, errormera,'v', markersize=14,color = '#e3360b', label=r'$qMERA, q=4$')
 
 plt.loglog( yg, errorg, 'H', markersize=14,color = '#204a87', label='MPS-DMRG')
 

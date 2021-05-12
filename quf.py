@@ -1065,7 +1065,7 @@ def range_unitary_gate_inf( circ, where_gates, depth, seed_val, Qubit_ara,block_
                params = [0.]*lp
                params =[0.,0,0,   0,-pi/2,0,   0,pi/2,0,   0,0,0, -pi/2,pi/2,-pi/2  ]
           else:
-               params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val)
+               params = qu.randn(lp, dist='uniform', seed=i+seed_val)
 
           #print ("where_e", where_gates[i], where_gates[i + 1], f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}')
           circ.apply_gate( gt, *params, where_gates[i], where_gates[i + 1], parametrize=True, gate_round=f'P{Qubit_ara%block_size}L{where_gates[i]}D{r}', contract=False )
@@ -1077,7 +1077,7 @@ def range_unitary_gate_inf( circ, where_gates, depth, seed_val, Qubit_ara,block_
                params = [0.]*lp
                params =[0.,0,0,   0,-pi/2,0,   0,pi/2,0,   0,0,0, -pi/2,pi/2,-pi/2  ]
           else:
-               params = qu.randn(lp, dist='uniform', seed=i+seed_val+seed_val)
+               params = qu.randn(lp, dist='uniform', seed=i+seed_val)
 
           circ.apply_gate( gt, *params, where_gates[i+1], where_gates[i + 2], parametrize=True,  gate_round=f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}', contract=False )
           #print ("where_o", where_gates[i+1], where_gates[i + 2], f'P{Qubit_ara%block_size}L{where_gates[i+1]}D{r}')
@@ -1320,9 +1320,9 @@ def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10,b_s_g
     if i%b_s_g==1:
        list_basis.append("1")
     if i%b_s_g==2:
-       list_basis.append("1")
-    if i%b_s_g==3:
        list_basis.append("0")
+    if i%b_s_g==3:
+       list_basis.append("1")
 
 
    list_basis=["0"]*n_Qbit+list_basis
@@ -1411,9 +1411,9 @@ def imps( ):
  t=1.0
  mu=U/2.
 
- Qbit=3
+ Qbit=4
  D=8
- L_L=16                        
+ L_L=264                        
  b_s=4                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
@@ -1439,7 +1439,7 @@ def imps( ):
  plt.clf()
 
 
- L_dmrg=12
+ L_dmrg=16
  #E_exact=DMRG_test( L_dmrg, U, t, mu)
  E_exact=DMRG_test_1( L_dmrg, U, t, mu)
 
@@ -1448,7 +1448,7 @@ def imps( ):
  #E_exact=-0.443147188
  print("E_exact=", E_exact)
 
- qmps=Smart_guess_infmps(qmps)
+ #qmps=Smart_guess_infmps(qmps)
 
  #MPO_origin=mpo_Fermi_Hubburd_inf( l_mpo//2, U, t, mu)
  MPO_origin=mpo_Fermi_Hubburd_inf_1( l_mpo//2, U, t, mu)
@@ -1469,8 +1469,8 @@ def imps( ):
  tnopt_qmps=auto_diff_infmps( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
 
 
-# tnopt_qmps.optimizer = 'L-BFGS-B' 
-# qmps = tnopt_qmps.optimize( n=100, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ tnopt_qmps.optimizer = 'L-BFGS-B' 
+ qmps = tnopt_qmps.optimize( n=50, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
 
  save_to_disk(qmps, "Store/mps")
  save_to_disk(qmps, "Store/mpsguess")
@@ -1480,8 +1480,8 @@ def imps( ):
 
 
  energy_f_local(qmps,l_mpo, L_L, Qbit,MPO_origin,mu)
- local_particle_info(qmps, L_L, Qbit)
- #Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt)
+ #local_particle_info(qmps, L_L, Qbit)
+ Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt,shift_AB=b_s)
 
 
 
@@ -1499,9 +1499,9 @@ def imps( ):
 
 
 
-def   Gate_qmps_infinit( ):
+def  Gate_qmps_infinit( ):
 
- U=6.0
+ U=4.0
  t=1.0
  #mu=U/2.
  mu=0
@@ -1509,7 +1509,7 @@ def   Gate_qmps_infinit( ):
  Qbit=4
  Depth=4
  D=8
- L_L=8                        
+ L_L=64                        
  b_s=4                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
@@ -1523,7 +1523,7 @@ def   Gate_qmps_infinit( ):
  relative_error=[]
  relative_error_Q=[]
 
- circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=2, b_s_g=b_s, gate_type=GATE, len_parma=PARAM)
+ circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=100, b_s_g=b_s, gate_type=GATE, len_parma=PARAM)
  qmps=circ.psi
 
 
@@ -1562,33 +1562,33 @@ def   Gate_qmps_infinit( ):
  #tnopt_qmps=auto_diff_stateGATE_inf(qmps, mps, list_sharedtags, optimizer_c='L-BFGS-B')
 
 #energy
-#  tnopt_qmps=auto_diff_infgate( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
-# 
-#  tnopt_qmps.optimizer = 'L-BFGS-B' 
-#  qmps = tnopt_qmps.optimize( n=20, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ tnopt_qmps=auto_diff_infgate( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
+
+ tnopt_qmps.optimizer = 'L-BFGS-B' 
+ qmps = tnopt_qmps.optimize( n=30, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
  
 ###########################################################################
- #save_info_QMPS(qmps,circ, GATE ,list_tag_block)
+ save_info_QMPS(qmps,circ, GATE ,list_tag_block)
 
  energy_f_local(qmps,l_mpo, L_L, Qbit,MPO_origin,mu)
  local_particle_info(qmps, L_L, Qbit)
- #Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=1)
+ Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=4)
 
 
  save_info_QMPS_gate(qmps,circ, GATE ,list_tag_block)
- #Build_up_U_burnin(qmps,Qbit,PARAM,GATE,L_L,depth_local=4,ancilla_qubit=2)
+ Build_up_U_burnin(qmps,Qbit,PARAM,GATE,L_L,depth_local=4,ancilla_qubit=2)
 
 
- qmps_u, n_ancilla=rebuil_qmps_U(Qbit,GATE,L_L,b_s,b_s_g=b_s)
-  
- MPO_origin=mpo_Fermi_Hubburd_inf_1( l_mpo//2, U, t, mu)
- MPO_origin.reindex_({ f"k{i}":f"k{L_L+Qbit+n_ancilla-i-1}"  for i in range(l_mpo) } )
- MPO_origin.reindex_({ f"b{i}":f"b{L_L+Qbit+n_ancilla-i-1}"  for i in range(l_mpo) } )
- 
- 
- energy_f_local(qmps_u,l_mpo, L_L, Qbit+n_ancilla,MPO_origin,mu)
- local_particle_info(qmps_u, L_L, Qbit+n_ancilla)
- Hubburd_correlation_inf(qmps_u, L_L, Qbit+n_ancilla, b_s, opt,shift_AB=1)
+# qmps_u, n_ancilla=rebuil_qmps_U(Qbit,GATE,L_L,b_s,b_s_g=b_s)
+#  
+# MPO_origin=mpo_Fermi_Hubburd_inf_1( l_mpo//2, U, t, mu)
+# MPO_origin.reindex_({ f"k{i}":f"k{L_L+Qbit+n_ancilla-i-1}"  for i in range(l_mpo) } )
+# MPO_origin.reindex_({ f"b{i}":f"b{L_L+Qbit+n_ancilla-i-1}"  for i in range(l_mpo) } )
+# 
+# 
+# energy_f_local(qmps_u,l_mpo, L_L, Qbit+n_ancilla,MPO_origin,mu)
+# local_particle_info(qmps_u, L_L, Qbit+n_ancilla)
+# Hubburd_correlation_inf(qmps_u, L_L, Qbit+n_ancilla, b_s, opt,shift_AB=1)
 
 
 
@@ -1936,7 +1936,7 @@ def  part_inf_Hubburd_1(qmps, l_mpo,L_L, Qbit):
  Spin_down=( psi_h & mpo_spin_down & qmps).contract(all, optimize='auto-hq').real
  print ("Spin_down", Spin_down )
  N_par=( psi_h & mpo_part & qmps).contract(all, optimize='auto-hq').real
- print ("Part", N_par, "dopping", ((l_mpo//2)-1)/N_par )
+ print ("Part", N_par, "dopping", N_par/((l_mpo//2)-1) )
 
  return N_par, Spin_up, Spin_down
 
@@ -2571,7 +2571,7 @@ def auto_diff_qmps( ):
  Qbit=2
  Depth=1
  D=32
- depth_total_f=5
+ depth_total_f=10
 
  print ( "Info_QMPS", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
 
@@ -2582,7 +2582,7 @@ def auto_diff_qmps( ):
 
  #print ("Defined qmps", qmps)
 
- qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=1, internal_mera="brickwall",n_q_mera=2 )
+ qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=0, internal_mera="brickwall",n_q_mera=2 )
  qmps.unitize_(method='mgs')
 
 # qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=10 )
@@ -2599,7 +2599,7 @@ def auto_diff_qmps( ):
 
  #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
  MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
- #qmps=Smart_guess(qmps, tag, L_L, Qbit, val_iden=0.00)
+ qmps=Smart_guess(qmps, tag, L_L, Qbit, val_iden=0.001)
  #qmps=Smart_guessmera(qmps, tag, L_L, Qbit, val_iden=0.00)
 
  psi_h=qmps.H 
@@ -2610,38 +2610,34 @@ def auto_diff_qmps( ):
 
 
 
- info=( psi_h & MPO_origin & qmps).contract(all,optimize=opt, get='path-info') 
- #opt.plot_trials()
-
-
- tree = ctg.ContractionTree.from_info(info)
- tree.plot_tent(node_scale= 1. / 1, edge_scale=1 / 1, return_fig=True, figsize=(7, 7))
- #opt.plot_trials()
- plt.savefig('tree.pdf',bbox_inches='tight', dpi=200)
- #fig.savefig('tree.pdf', dpi=fig.dpi)
- #plt.clf()
-
- tree.plot_ring(node_scale= 1. / 1, edge_scale=1 / 1, return_fig=True, figsize=(7, 7))
- plt.savefig('treeRing.pdf',bbox_inches='tight', dpi=200)
- #plt.clf()
-
- #print (info, opt )
-
- print (info, opt )
-
-
-
-
+#  info=( psi_h & MPO_origin & qmps).contract(all,optimize=opt, get='path-info') 
+#  #opt.plot_trials()
+# 
+# 
+#  tree = ctg.ContractionTree.from_info(info)
+#  tree.plot_tent(node_scale= 1. / 1, edge_scale=1 / 1, return_fig=True, figsize=(7, 7))
+#  #opt.plot_trials()
+#  plt.savefig('tree.pdf',bbox_inches='tight', dpi=200)
+#  #fig.savefig('tree.pdf', dpi=fig.dpi)
+#  #plt.clf()
+# 
+#  tree.plot_ring(node_scale= 1. / 1, edge_scale=1 / 1, return_fig=True, figsize=(7, 7))
+#  plt.savefig('treeRing.pdf',bbox_inches='tight', dpi=200)
+#  #plt.clf()
+# 
+#  #print (info, opt )
+# 
+#  print (info, opt )
 
 
 
 
 
  coupling=-0.10
- for iter in range(0):
+ for iter in range(1):
   coupling=coupling+0.1
-  MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
-  #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+  #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
+  MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
   #MPO_origin=mpo_longrange_Heisenberg(L_L)
   #DMRG_test( L_L, U, t, mu)
   #print ("MPO", MPO_origin.show())
@@ -2652,7 +2648,7 @@ def auto_diff_qmps( ):
   #N_particle, N_up, N_down=Hubburd_correlation( p_DMRG, L_L, opt) 
   #print ("DMRG-part", N_particle, N_up, N_down)
   print( "E_dmrg", E_exact, p_DMRG.show())
-  Hubburd_correlation( p_DMRG, L_L, opt) 
+  #Hubburd_correlation( p_DMRG, L_L, opt) 
   #correlation( p_DMRG, L_L, opt) 
 
 
@@ -2670,7 +2666,7 @@ def auto_diff_qmps( ):
   tnopt_qmps.optimizer = 'L-BFGS-B' 
   #tnopt_qmps.optimizer = 'CG' 
   print ( tnopt_qmps.optimizer )
-  qmps = tnopt_qmps.optimize(n=20 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  qmps = tnopt_qmps.optimize(n=4000 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
   #qmps = tnopt_qmps.optimize_basinhopping(n=100, nhop=10, temperature=0.5 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 1, disp=False)
 
 
@@ -2692,7 +2688,7 @@ def auto_diff_qmps( ):
 
 
   #Hubburd_correlation( qmps, L_L, opt) 
-  #correlation( qmps, L_L, opt) 
+  correlation( qmps, L_L, opt) 
 
   #N_particle, N_up, N_down=Hubburd_correlation( qmps, L_L, opt) 
   #print ("QMPS-part", N_particle, N_up, N_down)
@@ -3242,8 +3238,8 @@ def  auto_diff_qmps_local( ):
 
  J_l=[]
  L_L=2**5
- Qbit=2
- Depth=14
+ Qbit=4
+ Depth=6
  depth_total_f=1
  D=2
  U=3.
@@ -4813,18 +4809,46 @@ def   correlation(qmera, L_L, opt):
   list_j=[]
   i_init=(L_L//2)-8  #(3*L_L//8)
   for i in range(i_init+1, L_L-1, 1):
-#   MPO_f=MPO_identity(L_L, phys_dim=2)
-#   MPO_f[i_init].modify(data=Wz)
-#   qmera_h=qmera.H 
-#   qmera.align_(MPO_f, qmera_h)
-#   A_1=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
-   A_1=0
-   B_1=0
-#   MPO_f=MPO_identity(L_L, phys_dim=2)
-#   MPO_f[i].modify(data=Wz)
-#   qmera_h=qmera.H 
-#   qmera.align_(MPO_f, qmera_h)
-#   B_1=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i_init].modify(data=Wz)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   Z_1=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i].modify(data=Wz)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   Z_2=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i_init].modify(data=Wx)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   X_1=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i].modify(data=Wx)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   X_2=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+
+
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i_init].modify(data=Wy)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   Y_1=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+   MPO_f=MPO_identity(L_L, phys_dim=2)
+   MPO_f[i].modify(data=Wy)
+   qmera_h=qmera.H 
+   qmera.align_(MPO_f, qmera_h)
+   Y_2=(qmera_h  & MPO_f  &  qmera).contract(all, optimize=opt) 
+
+
 
 
    MPO_f=MPO_identity(L_L, phys_dim=2)
@@ -4853,8 +4877,8 @@ def   correlation(qmera, L_L, opt):
 
 
 
-   print ( i_init, i,abs(i_init-i), C_1, C_2, C_3,  C_1+C_2-C_3  )
-   list_z.append(C_1+C_2-C_3)
+   print ( i_init, i,abs(i_init-i), C_1, C_2, C_3,Z_1*Z_2,X_1*X_2,Y_1*Y_2,  Z_1*Z_2+X_1*X_2-Y_1*Y_2+C_1+C_2-C_3  )
+   list_z.append(Z_1*Z_2+X_1*X_2-Y_1*Y_2+C_1+C_2-C_3 )
    list_r.append(abs(i_init-i))
    list_i.append(i_init)
    list_j.append(i)
@@ -5452,7 +5476,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
    list_r=[]
    list_i=[]
    list_j=[]
-   long_val=4
+   long_val=12
    for Length_corr in range(1,long_val,1):
     corr_val=0
     iter_val=0
@@ -5499,7 +5523,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
      psi_h.reindex_({ f"k{L_L+Qbit-i-p-1}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
      C_1=(psi_h  & MPO_two  &  qmps).contract(all, optimize=opt).real 
 
-     #print (dic_label[sign_val], p, "sites", L_L+Qbit-p-1, L_L+Qbit-p-i_init+1, A_1, B_1, C_1, C_1 - A_1*B_1)
+     print (dic_label[sign_val], p, "sites", L_L+Qbit-p-1, L_L+Qbit-p-i_init+1, A_1, B_1, C_1, C_1 - A_1*B_1)
      corr_val+=C_1- A_1*B_1
      iter_val+=1.
      list_i.append(L_L+Qbit-p-i_init+1)
@@ -5544,7 +5568,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
    list_r=[]
    list_i=[]
    list_j=[]
-   long_val=4
+   long_val=12
    for Length_corr in range(1,long_val,1):
     corr_val=0
     iter_val=0
@@ -5601,7 +5625,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
      psi_h.reindex_({ f"k{L_L+Qbit-i-p-1}":f"b{L_L+Qbit-i-p-1}"  for i in range(i_init) } )
      C_1=(psi_h  & MPO_two  &  qmps).contract(all, optimize=opt).real 
 
-     #print (dic_label[sign_val], p, "sites", L_L+Qbit-p-1, L_L+Qbit-p-i_init+1, A_1, B_1, C_1, C_1 - A_1*B_1)
+     print (dic_label[sign_val], p, "sites", L_L+Qbit-p-1, L_L+Qbit-p-i_init+1, A_1, B_1, C_1, C_1 - A_1*B_1)
      corr_val+=C_1- A_1*B_1
      iter_val+=1.
      list_i.append(L_L+Qbit-p-i_init+1)

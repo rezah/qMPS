@@ -132,9 +132,9 @@ plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#f57900' )
 
 
 
-plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'$qMPS, n_q=5$')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, n_q=2$')
-#plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, n_q=3$')
+plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'$qMPS, q=5$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, q=2$')
+#plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, q=3$')
 
 plt.loglog( yg, errorg, 'H', markersize=14,color = '#204a87', label='MPS-DMRG')
 

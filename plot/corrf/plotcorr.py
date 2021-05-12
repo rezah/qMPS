@@ -77,7 +77,7 @@ fig=plt.figure(figsize=(8,6))
 
 #plt.plot( x, errorD16, '--', color = '#e30b69',markersize=10, label=r'$D=16$')
 
-plt.plot( x, errorq4b, '3', color = '#e30b69',markersize=15, label=r'$qMPS, n_q=4$')
+plt.plot( x, errorq4b, '3', color = '#e30b69',markersize=15, label=r'$qMPS, q=4$')
 #plt.loglog( x, errorq5p,'3', color = '#cf729d',markersize=15, label=r'$qMPS, n_q=5$')
 #plt.loglog( x, errorq5b,'2',markersize=15, color = '#c74294', label=r'$qMPS, n_q=5$')
 plt.loglog( x, errorD32, '2', markersize=15,color = '#204a87', label='MPS, D=32')

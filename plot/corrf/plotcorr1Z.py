@@ -77,18 +77,17 @@ fig=plt.figure(figsize=(8,6))
 
 
 #plt.plot( x, y, '--', color = '#e30b69',markersize=10, label=r'$D=16$')
-plt.plot( x, yQ4, '>', color = '#e30b69',markersize=10, label=r'$qMPS, n_q=4$')
-plt.loglog( x, yQ5,'s',markersize=10, color = '#c74294', label=r'$qMPS, n_q=5$')
-#plt.loglog( x, yQ7,'o', color = '#cf729d',markersize=10, label=r'$qMPS, n_q=7$')
-plt.loglog( x, yQ8,'o', color = '#cf729d',markersize=10, label=r'$qMPS, n_q=8$')
-plt.loglog( x, y, '--', lw=3,color = '#204a87', label='MPS-DMRG')
+plt.plot( x, yQ4, '>', color = '#a40000',markersize=11, label=r'$qMPS, q=4$')
+plt.loglog( x, yQ5,'o',markersize=11, color = '#f57900', label=r'$qMPS, q=5$')
+plt.loglog( x, yQ8,'s', color = '#e30b69',markersize=11, label=r'$qMPS, q=8$')
+plt.loglog( x, y, '--', lw=2,color = '#204a87', label='DMRG')
 
 
 plt.yscale("log")
 
 #plt.title('qmps')
-plt.ylabel(r'$C(r)$',fontsize=16)
-plt.xlabel(r'$r$',fontsize=16)
+plt.ylabel(r'$C(r)$',fontsize=18)
+plt.xlabel(r'$r$',fontsize=18)
 #plt.axhline(0.00422,color='black', label='D=4')
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
@@ -97,9 +96,9 @@ plt.xlabel(r'$r$',fontsize=16)
 #plt.ylim([ 1.e0, 4.e-2])
 
 
-plt.xticks(fontsize=16)
-plt.yticks(fontsize=16)
-plt.legend(loc="lower left", prop={'size': 20})
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.legend(loc="lower left", prop={'size': 21})
 
 
 plt.grid(True)

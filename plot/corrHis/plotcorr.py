@@ -128,8 +128,9 @@ yq4b=[    abs(yq4b[i])     for i in range(len(yq4b))     ]
 plt.figure(figsize=(8, 6))
 
 
+#plt.loglog( x, y, '--', lw=2,color = '#204a87', label='DMRG')
 
-#plt.plot( x, y, '--', color = '#e30b69',markersize=10, label=r'$D=16$')
+plt.plot( x, y, '--', color = '#204a87',markersize=10, label=r'$DMRG, D=16$')
 plt.plot( x, yq4b, '1', color = '#e30b69',markersize=22, label=r'$qMPS, q=4$')
 
 
@@ -138,13 +139,12 @@ plt.plot( x, yq4b, '1', color = '#e30b69',markersize=22, label=r'$qMPS, q=4$')
 
 #plt.plot( x, yl4p, '-p', color = '#e30b69',markersize=10, label=r'$QC-l, \tau=4$')
 plt.plot( x, yl6p, '-.D', color = '#f57900',markersize=11, label=r'$QC-l, \tau=6$')
-#plt.plot( x, yl7p, '-p', color = '#e30b69',markersize=10, label=r'$QC-l, \tau=7$')
-plt.plot( x, yl8, '-s', color = '#cb14e3',markersize=10, label=r'$QC-b, \tau=8$')
+#plt.plot( x, yl7p, '-p', color = '#f57900',markersize=10, label=r'$QC-l, \tau=7$')
+#plt.plot( x, yl8, '-s', color = '#cb14e3',markersize=10, label=r'$QC-b, \tau=8$')
 plt.plot( x, yl12, '-.s', color = '#a40000',markersize=11, label=r'$QC-b, \tau=12$')
 
 #plt.loglog( x, yq5p,'3', color = '#cf729d',markersize=15, label=r'$qMPS, n_q=5$')
 #plt.loglog( x, yq5b,'2',markersize=15, color = '#c74294', label=r'$qMPS, n_q=5$')
-plt.loglog( x, y, '--', lw=2,color = '#204a87', label='DMRG')
 
 
 plt.yscale("log")
@@ -156,7 +156,7 @@ plt.xlabel(r'$r$',fontsize=20)
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
 
-plt.xlim([3.,26])
+plt.xlim([1.,24])
 plt.ylim([ 4.e-2, 1.e0])
 
 
