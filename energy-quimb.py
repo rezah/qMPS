@@ -13,13 +13,13 @@ from numpy import linalg as LA
 if __name__ == '__main__':
  #quf.auto_diff_qmps( )
  #qmps=quf.DMRG_qmps( )
- #quf.auto_diff_qmps_local( )
+ quf.auto_diff_qmps_local( )
 
 
  #quf.Gate_qmps_finite( )
 
  #quf.imps( )
- quf.Gate_qmps_infinit( )
+ #quf.Gate_qmps_infinit( )
 
 
 
