@@ -26,7 +26,7 @@ list_tag_block=load_from_disk("list_tag_block")
 #physical + bond qubits
 #l+number of qubit+ ancilla
 n_Qbit=4
-l=6
+l=8
 L=n_Qbit+n_ancilla+l
 U=6.0
 t=1.0
