@@ -1320,9 +1320,33 @@ def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10,b_s_g
     if i%b_s_g==1:
        list_basis.append("1")
     if i%b_s_g==2:
-       list_basis.append("0")
+       list_basis.append("1")
     if i%b_s_g==3:
        list_basis.append("1")
+
+
+
+   list_basis=[]
+   for i in range(L):
+    if i%b_s_g==0:
+       list_basis.append("1")
+    if i%b_s_g==1:
+       list_basis.append("0")
+    if i%b_s_g==2:
+       list_basis.append("1")
+    if i%b_s_g==3:
+       list_basis.append("1")
+    if i%b_s_g==4:
+       list_basis.append("1")
+    if i%b_s_g==5:
+       list_basis.append("0")
+#     if i%b_s_g==6:
+#        list_basis.append("1")
+#     if i%b_s_g==7:
+#        list_basis.append("1")
+
+
+
 
 
    list_basis=["0"]*n_Qbit+list_basis
@@ -1407,14 +1431,15 @@ def Smart_guess_infmps(qmps):
 
 def imps( ):
 
- U=6.0
+ U=1.0
  t=1.0
- mu=U/2.
+ mu=.588
 
- Qbit=4
+
+ Qbit=2
  D=8
- L_L=264                        
- b_s=4                          #----ABCABCABC----
+ L_L=36                        
+ b_s=2                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
  PARAM=5
@@ -1439,7 +1464,7 @@ def imps( ):
  plt.clf()
 
 
- L_dmrg=16
+ L_dmrg=96
  #E_exact=DMRG_test( L_dmrg, U, t, mu)
  E_exact=DMRG_test_1( L_dmrg, U, t, mu)
 
@@ -1470,7 +1495,7 @@ def imps( ):
 
 
  tnopt_qmps.optimizer = 'L-BFGS-B' 
- qmps = tnopt_qmps.optimize( n=50, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ qmps = tnopt_qmps.optimize( n=40, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
 
  save_to_disk(qmps, "Store/mps")
  save_to_disk(qmps, "Store/mpsguess")
@@ -1481,7 +1506,7 @@ def imps( ):
 
  energy_f_local(qmps,l_mpo, L_L, Qbit,MPO_origin,mu)
  #local_particle_info(qmps, L_L, Qbit)
- Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt,shift_AB=b_s)
+ #Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt,shift_AB=b_s)
 
 
 
@@ -1501,16 +1526,16 @@ def imps( ):
 
 def  Gate_qmps_infinit( ):
 
- U=4.0
+ U=6.0
  t=1.0
- #mu=U/2.
+ mu=U/2.
  mu=0
 
  Qbit=4
  Depth=4
  D=8
- L_L=64                        
- b_s=4                          #----ABCABCABC----
+ L_L=90                        
+ b_s=6                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
  PARAM=5
@@ -1523,7 +1548,7 @@ def  Gate_qmps_infinit( ):
  relative_error=[]
  relative_error_Q=[]
 
- circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=100, b_s_g=b_s, gate_type=GATE, len_parma=PARAM)
+ circ, list_sharedtags, list_tag_block=qmps_gate_f_inf( L=L_L, block_size=b_s, in_depth=Depth, n_Qbit=Qbit, seed_val=10, b_s_g=b_s, gate_type=GATE, len_parma=PARAM)
  qmps=circ.psi
 
 
@@ -1565,14 +1590,14 @@ def  Gate_qmps_infinit( ):
  tnopt_qmps=auto_diff_infgate( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
 
  tnopt_qmps.optimizer = 'L-BFGS-B' 
- qmps = tnopt_qmps.optimize( n=30, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ qmps = tnopt_qmps.optimize( n=10, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
  
 ###########################################################################
  save_info_QMPS(qmps,circ, GATE ,list_tag_block)
 
  energy_f_local(qmps,l_mpo, L_L, Qbit,MPO_origin,mu)
  local_particle_info(qmps, L_L, Qbit)
- Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=4)
+ Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=1)
 
 
  save_info_QMPS_gate(qmps,circ, GATE ,list_tag_block)
@@ -5476,7 +5501,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
    list_r=[]
    list_i=[]
    list_j=[]
-   long_val=12
+   long_val=4
    for Length_corr in range(1,long_val,1):
     corr_val=0
     iter_val=0
@@ -5568,7 +5593,7 @@ def   Hubburd_correlation_inf( qmps, L_L,Qbit, b_s, opt, shift_AB=1):
    list_r=[]
    list_i=[]
    list_j=[]
-   long_val=12
+   long_val=4
    for Length_corr in range(1,long_val,1):
     corr_val=0
     iter_val=0
