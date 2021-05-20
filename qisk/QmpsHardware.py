@@ -28,7 +28,7 @@ list_tag_block=load_from_disk("list_tag_block")
 n_Qbit=4
 l=8
 L=n_Qbit+n_ancilla+l
-U=4.0
+U=1.0
 t=1.0
 mu=0
 
