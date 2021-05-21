@@ -41,6 +41,7 @@ logy = np.log(error)
 
 yfit = lambda y: np.exp(poly(np.log(y)))
 coeffs = np.polyfit(logx,logy,deg=1)
+print ("QC-b", coeffs)
 poly = np.poly1d(coeffs)
 
 
@@ -102,6 +103,7 @@ logy = np.log(errorqmpsbq5)
 yfitqmpsbq5 = lambda qmpsbq5: np.exp(poly4(np.log(qmpsbq5)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly4 = np.poly1d(coeffs)
+print ("qMPS-b", coeffs)
 
 
 

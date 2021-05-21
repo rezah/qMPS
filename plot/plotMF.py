@@ -107,7 +107,7 @@ poly4 = np.poly1d(coeffs)
 
 
 
-R=np.loadtxt("qmeraQ3.txt")
+R=np.loadtxt("qmeraQ3F.txt")
 xqmpsbq8=R[:,0]
 yqmpsbq8=R[:,2]
 errorqmpsbq8=R[:,3]
@@ -116,25 +116,26 @@ logy = np.log(errorqmpsbq8)
 yfitqmpsbq8 = lambda qmpsbq8: np.exp(poly8(np.log(qmpsbq8)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly8 = np.poly1d(coeffs)
+print ("MERA-F", coeffs)
 
 
 
 
 y_rand=np.arange(390, 5.0e4) 
 y_rand1=np.arange(1400, 5.0e4) 
-y_rand2=np.arange(1500, 5.0e4) 
+y_rand2=np.arange(3000, 9.0e4) 
 
 fig=plt.figure(figsize=(7,7))
 
 plt.loglog(y_rand1,yfitqmpsb(y_rand1) ,'--',lw=4,  color = '#cf729d' )
-#plt.loglog(y_rand2,yfitqmpsbq8(y_rand2) ,'-.',lw=4,  color = '#a40000' )
-plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#f57900' )
+plt.loglog(y_rand2,yfitqmpsbq8(y_rand2) ,'-.',lw=4,  color = '#a40000' )
+#plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#f57900' )
 
 
 
 plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'$qMPS, q=5$')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, q=2$')
-#plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, q=3$')
+#plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, q=2$')
+plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, q=3$')
 
 plt.loglog( yg, errorg, 'H', markersize=14,color = '#204a87', label='MPS-DMRG')
 

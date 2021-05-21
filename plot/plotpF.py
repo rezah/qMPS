@@ -55,6 +55,7 @@ logy = np.log(errorg)
 yfitDMRG = lambda yg: np.exp(polydmrg(np.log(yg)))
 coeffs = np.polyfit(logx,logy,deg=1)
 polydmrg = np.poly1d(coeffs)
+print ("dmrg-F", coeffs)
 
 
 
@@ -67,6 +68,7 @@ logy = np.log(errorp)
 yfitp = lambda yp: np.exp(poly2(np.log(yp)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly2 = np.poly1d(coeffs)
+print ("QC-lf", coeffs)
 
 
 
@@ -118,6 +120,7 @@ logy = np.log(errorqmpsbq8)
 yfitqmpsbq8 = lambda qmpsbq8: np.exp(poly8(np.log(qmpsbq8)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly8 = np.poly1d(coeffs)
+print ("qMPS-lf", coeffs)
 
 
 

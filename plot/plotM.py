@@ -104,6 +104,7 @@ logy = np.log(errorqmpsbq5)
 yfitqmpsbq5 = lambda qmpsbq5: np.exp(poly4(np.log(qmpsbq5)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly4 = np.poly1d(coeffs)
+print ("qmera-q2", coeffs)
 
 
 
@@ -116,6 +117,7 @@ logy = np.log(errorqmpsbq8)
 yfitqmpsbq8 = lambda qmpsbq8: np.exp(poly8(np.log(qmpsbq8)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly8 = np.poly1d(coeffs)
+print ("qmera-q3", coeffs)
 
 
 R=np.loadtxt("qmeraQ4.txt")
@@ -128,6 +130,7 @@ logy = np.log(errormera)
 yfitmera = lambda qmpsmera: np.exp(poly9(np.log(qmpsmera)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly9 = np.poly1d(coeffs)
+print ("qmera-q4", coeffs)
 
 
 y_rand=np.arange(390, 5.0e4) 

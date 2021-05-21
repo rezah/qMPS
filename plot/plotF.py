@@ -42,6 +42,7 @@ logy = np.log(error)
 yfit = lambda y: np.exp(poly(np.log(y)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly = np.poly1d(coeffs)
+print ("QC-bf", coeffs)
 
 
 R=np.loadtxt("dmrgF.txt")
@@ -79,6 +80,7 @@ logy = np.log(errorqmpsb)
 yfitqmpsb = lambda yqmpsb: np.exp(poly1(np.log(yqmpsb)))
 coeffs = np.polyfit(logx,logy,deg=1)
 poly1 = np.poly1d(coeffs)
+print ("qMPS-bf", coeffs)
 
 
 
