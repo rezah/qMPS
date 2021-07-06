@@ -40,15 +40,15 @@ y=[    abs(y[i])     for i in range(len(y))     ]
 R=np.loadtxt("corrN2.txt")
 xl2=R[:,2]
 yl2=R[:,3]
-errorl2=[    abs((y[i]-yl2[i])/ y[i])     for i in range(len(y))]
 yl2=[    abs(yl2[i])     for i in range(len(yl2))     ]
+errorl2=[    abs((y[i]-yl2[i])/ y[i])     for i in range(len(y))]
 
 
 R=np.loadtxt("corrN2p.txt")
 xl2p=R[:,2]
 yl2p=R[:,3]
-errorl2p=[    abs((y[i]-yl2p[i])/ y[i])     for i in range(len(y))]
 yl2p=[    abs(yl2p[i])     for i in range(len(yl2p))     ]
+errorl2p=[    abs((y[i]-yl2p[i])/ y[i])     for i in range(len(y))]
 
 
 
@@ -57,52 +57,52 @@ yl2p=[    abs(yl2p[i])     for i in range(len(yl2p))     ]
 R=np.loadtxt("corrN4.txt")
 xl4=R[:,2]
 yl4=R[:,3]
-errorl4=[    abs((y[i]-yl4[i])/ y[i])     for i in range(len(y))]
 yl4=[    abs(yl4[i])     for i in range(len(yl4))     ]
+errorl4=[    abs((y[i]-yl4[i])/ y[i])     for i in range(len(y))]
 
 
 
 R=np.loadtxt("corrN4p.txt")
 xl4p=R[:,2]
 yl4p=R[:,3]
-errorl4p=[    abs((y[i]-yl4p[i])/ y[i])     for i in range(len(y))]
 yl4p=[    abs(yl4p[i])     for i in range(len(yl4p))     ]
+errorl4p=[    abs((y[i]-yl4p[i])/ y[i])     for i in range(len(y))]
 
 
 R=np.loadtxt("corrN6p.txt")
 xl6p=R[:,2]
 yl6p=R[:,3]
-errorl6p=[    abs((y[i]-yl6p[i])/ y[i])     for i in range(len(y))]
 yl6p=[    abs(yl6p[i])     for i in range(len(yl6p))     ]
+errorl6p=[    abs((y[i]-yl6p[i])/ y[i])     for i in range(len(y))]
 
 
 
 R=np.loadtxt("corrN8.txt")
 xl8=R[:,2]
 yl8=R[:,3]
-errorl8=[    abs((y[i]-yl8[i])/ y[i])     for i in range(len(y))]
 yl8=[    abs(yl8[i])     for i in range(len(yl8))     ]
+errorl8=[    abs((y[i]-yl8[i])/ y[i])     for i in range(len(y))]
 
 R=np.loadtxt("corrN8p.txt")
 xl8p=R[:,2]
 yl8p=R[:,3]
-errorl8p=[    abs((y[i]-yl8p[i])/ y[i])     for i in range(len(y))]
 yl8p=[    abs(yl8p[i])     for i in range(len(yl8p))     ]
+errorl8p=[    abs((y[i]-yl8p[i])/ y[i])     for i in range(len(y))]
 
 
 
 R=np.loadtxt("corrN10.txt")
 xl10=R[:,2]
 yl10=R[:,3]
-errorl10=[    abs((y[i]-yl10[i])/ y[i])     for i in range(len(y))]
 yl10=[    abs(yl10[i])     for i in range(len(yl10))     ]
+errorl10=[    abs((y[i]-yl10[i])/ y[i])     for i in range(len(y))]
 
 
 R=np.loadtxt("corrN6.txt")
 xl6=R[:,2]
 yl6=R[:,3]
-errorl6=[    abs((y[i]-yl6[i])/ y[i])     for i in range(len(y))]
 yl6=[    abs(yl6[i])     for i in range(len(yl6))     ]
+errorl6=[    abs((y[i]-yl6[i])/ y[i])     for i in range(len(y))]
 
 
 
@@ -110,42 +110,53 @@ yl6=[    abs(yl6[i])     for i in range(len(yl6))     ]
 R=np.loadtxt("corrN12.txt")
 xl12=R[:,2]
 yl12=R[:,3]
-errorl12=[    abs((y[i]-yl12[i])/ y[i])     for i in range(len(y))]
 yl12=[    abs(yl12[i])     for i in range(len(yl12))     ]
+errorl12=[    abs((y[i]-yl12[i])/ y[i])     for i in range(len(y))]
 
 
 R=np.loadtxt("corrNQ4.txt")
 xQ4=R[:,2]
 yQ4=R[:,3]
-errorQ4=[    abs((y[i]-yQ4[i])/ y[i])     for i in range(len(y))]
 yQ4=[    abs(yQ4[i])     for i in range(len(yQ4))     ]
+errorQ4=[    abs((y[i]-yQ4[i])/ y[i])     for i in range(len(y))]
 
 
 R=np.loadtxt("corrNQ7.txt")
 xQ7=R[:,2]
 yQ7=R[:,3]
-errorQ7=[    abs((y[i]-yQ7[i])/ y[i])     for i in range(len(y))]
 yQ7=[    abs(yQ7[i])     for i in range(len(yQ7))     ]
+errorQ7=[    abs((y[i]-yQ7[i])/ y[i])     for i in range(len(y))]
+
+
+R=np.loadtxt("corrNMq2.txt")
+xMq2=R[:,2]
+yMq2=R[:,3]
+yMq2=[    abs(yMq2[i])     for i in range(len(yMq2))     ]
+errorMq2=[    abs((y[i]-yMq2[i])/ y[i])     for i in range(len(y))]
+
+
+
+
 
 fig=plt.figure(figsize=(8,6))
 
 
 
-plt.loglog( x, y, '--', lw=2,color = '#204a87', label='DMRG')
+plt.loglog( x, y, '--', lw=2,color = '#204a87', label='dMPS (DMRG)')
 #plt.plot( x, yQ4, '1', color = '#e30b69',markersize=22, label=r'$qMPS, q=4$')
 #plt.plot( x, yQ7, 'o', color = '#e30b69',markersize=11, label=r'$qMPS, q=7$')
 
 #plt.plot( x, yl4p, '-.',color = '#4e9a06',markersize=11, label=r'$QC-l, \tau=4$')
-#plt.plot( x, yl6p, '-.D',color = '#f57900',markersize=11, label=r'$QC-l, \tau=6$')
+plt.plot( x, yl6p, '-.D',color = '#f57900',markersize=11, label=r'QC-l, $\tau=6$')
 
-plt.plot( x, yl4, '-->', lw=3,color = '#e30b69',markersize=11, label=r'$ \tau=4$')
+# plt.plot( x, yl4, '-->', lw=3,color = '#e30b69',markersize=11, label=r'$ \tau=4$')
+# 
+# plt.plot( x, yl6, '--h', lw=3,color = '#f57900',markersize=11, label=r'$ \tau=6$')
+# 
+# plt.plot( x, yl8, '--o', lw=3,color = '#4e9a06',markersize=11, label=r'$ \tau=8$')
+plt.plot( x, yl12, '--d', lw=3,color = '#cc0000',markersize=11, label=r'QC-b, $\tau=12$')
 
-plt.plot( x, yl6, '--h', lw=3,color = '#f57900',markersize=11, label=r'$ \tau=6$')
-
-plt.plot( x, yl8, '--o', lw=3,color = '#4e9a06',markersize=11, label=r'$ \tau=8$')
-plt.plot( x, yl10, '--d', lw=3,color = '#cc0000',markersize=11, label=r'$ \tau=10$')
-
-plt.plot( x, yl12, '-.s', color = '#a40000',markersize=11, label=r'$\tau=12$')
+plt.plot( xMq2, yMq2, '-.o', color = '#a40000',markersize=11, label=r'qMERA, $q=2, \tau=8$')
 
 
 #plt.plot( x, yl8p, 'o', color = '#cc0000',markersize=10, label=r'$QC-l, \tau=8$')

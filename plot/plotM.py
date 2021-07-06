@@ -52,7 +52,26 @@ logx = np.log(yg)
 logy = np.log(errorg)
 yfitDMRG = lambda yg: np.exp(polydmrg(np.log(yg)))
 coeffs = np.polyfit(logx,logy,deg=1)
+print ("dmrg", coeffs)
 polydmrg = np.poly1d(coeffs)
+
+
+
+
+R=np.loadtxt("mera.txt")
+xgmera=R[:,0]
+ygmera=R[:,1]
+errorgmera=R[:,2]
+logx = np.log(ygmera)
+logy = np.log(errorgmera)
+yfitdmera = lambda ygmera: np.exp(polymera(np.log(ygmera)))
+coeffs = np.polyfit(logx,logy,deg=1)
+print ("mera", coeffs)
+polymera = np.poly1d(coeffs)
+
+
+
+
 
 
 
@@ -133,24 +152,27 @@ poly9 = np.poly1d(coeffs)
 print ("qmera-q4", coeffs)
 
 
-y_rand=np.arange(390, 5.0e4) 
-y_rand1=np.arange(1400, 5.0e4) 
-y_rand2=np.arange(1500, 5.0e4) 
+y_rand=np.arange(200, 6.0e4) 
+y_rand1=np.arange(400, 2.0e4) 
+y_rand2=np.arange(400, 2.0e4) 
 
 fig=plt.figure(figsize=(7,7))
 
 plt.loglog(y_rand1,yfitqmpsb(y_rand1) ,'--',lw=4,  color = '#cf729d' )
 plt.loglog(y_rand2,yfitqmpsbq8(y_rand2) ,'-.',lw=4,  color = '#a40000' )
 plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#f57900' )
+#plt.loglog(y_rand,yfitDMRG(y_rand) ,'-.', lw=4, color = '#204a87' )
+plt.loglog(y_rand,yfitdmera(y_rand) ,'-.', lw=4, color = '#c4a000' )
 
 
+#plt.loglog( yg, errorg, 'H', markersize=14,color = '#204a87', label='dMPS (DMRG)')
+plt.loglog( ygmera, errorgmera, 'H', markersize=14,color = '#c4a000', label='dMERA')
 
-plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'$qMPS, n_q=4$')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label=r'$qMERA, q=2$')
-plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label=r'$qMERA, q=3$')
-plt.loglog( ymera, errormera,'v', markersize=14,color = '#e3360b', label=r'$qMERA, q=4$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'o', markersize=14,color = '#f57900', label='qMERA, $q=2$')
+plt.loglog( yqmpsbq8, errorqmpsbq8,'D', markersize=14,color = '#a40000', label='qMERA, $q=3$')
+plt.loglog( ymera, errormera,'v', markersize=14,color = '#e3360b', label='qMERA, $q=4$')
+plt.loglog( yqmpsb, errorqmpsb,'s', markersize=14,color = '#cf729d', label=r'qMPS, $q=4$')
 
-plt.loglog( yg, errorg, 'H', markersize=14,color = '#204a87', label='MPS-DMRG')
 
 
 #plt.title('qmps')
@@ -160,12 +182,12 @@ plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
 
-plt.xlim([1000,40000])
-plt.ylim([1.e-5, 1.e-1])
+plt.xlim([150,40000])
+plt.ylim([1.e-7, 1.e-1])
 
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
-plt.legend(loc="upper right", prop={'size': 20})
+plt.legend(loc="lower left", prop={'size': 20})
 
 
 plt.grid(True)

@@ -53,6 +53,8 @@ logx = np.log(yg)
 logy = np.log(errorg)
 yfitDMRG = lambda yg: np.exp(polydmrg(np.log(yg)))
 coeffs = np.polyfit(logx,logy,deg=1)
+print ("dmrg", coeffs)
+
 polydmrg = np.poly1d(coeffs)
 
 
@@ -120,22 +122,24 @@ poly8 = np.poly1d(coeffs)
 
 
 
-y_rand=np.arange(390, 5.0e4) 
-y_rand1=np.arange(1400, 5.0e4) 
-y_rand2=np.arange(1500, 5.0e4) 
+y_rand=np.arange(400, 5.0e4) 
+y_rand1=np.arange(400, 5.0e4) 
+y_rand2=np.arange(400, 5.0e4) 
+y_rand3=np.arange(1200, 5.0e4) 
 
 fig=plt.figure(figsize=(7,7))
 
-plt.loglog( y_rand, yfit(y_rand) , '--', lw=4,color = '#e90ff5' )
+plt.loglog( y_rand3,yfitqmpsbq8(y_rand3) , '--', lw=4,color = '#e91e7a' )
 plt.loglog(y_rand1,yfitqmpsb(y_rand1),'--', lw=4, color = '#f57900' )
-#plt.loglog(y_rand2,yfitqmpsbq8(y_rand2) ,'-.', lw=3, color = '#ce5c00' )
+plt.loglog(y_rand,yfitDMRG(y_rand) ,'-.', lw=4, color = '#204a87' )
 plt.loglog(y_rand2,yfitqmpsbq5(y_rand2),'--', lw=4, color = '#a40000' )
 
 
-plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='DMRG')
-plt.loglog( y, error, 'o', markersize=15,color = '#e90ff5', label='QC-b')
-plt.loglog( yqmpsb, errorqmpsb,'p',markersize=15, color = '#f57900', label=r'$qMPS, q=4$')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#a40000', label=r'$qMPS, q=5$')
+plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='dMPS (DMRG)')
+#plt.loglog( y, error, 'o', markersize=15,color = '#e90ff5', label='QC-b')
+plt.loglog( yqmpsb, errorqmpsb,'p',markersize=15, color = '#f57900', label='qMPS, $q=4$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#a40000', label=r'qMPS, $q=5$')
+plt.loglog( yqmpsbq8, errorqmpsbq8,'D',markersize=15, color = '#e91e7a', label=r'qMPS, $q=8$')
 
 
 
@@ -145,12 +149,12 @@ plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
 
 
-plt.xlim([600,40000])
+plt.xlim([300,16000])
 plt.ylim([1.e-7, 1.e-1])
 
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
-plt.legend(loc="lower left", prop={'size': 22})
+plt.legend(loc="upper right", prop={'size': 22})
 
 
 

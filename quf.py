@@ -17,7 +17,7 @@ import autoray
 from progress.bar import Bar
 import tqdm
 import warnings
-
+from collections import Counter
 
 val_intense=0.0
 
@@ -169,7 +169,7 @@ def MERA_internal( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit, Qubit_ara
 
    depth_total=int(math.log2(L))
    
-   print ("i_start, n_Qbit, in_depth, L, depth_total",i_start, n_Qbit, in_depth, L, depth_total)
+   #print ("i_start, n_Qbit, in_depth, L, depth_total",i_start, n_Qbit, in_depth, L, depth_total)
    
    seed_val=10
    
@@ -201,7 +201,7 @@ def MERA_internal( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit, Qubit_ara
      list_Qubit=list_Qubit1+list_Qubit2
      list_Qubit=[ i+ i_start  for i in list_Qubit]
 
-     print("1_Qubit", list_Qubit, "site=",i, "layer=", j,"max_bond=", 2**(j+1))
+     #print("1_Qubit", list_Qubit, "site=",i, "layer=", j,"max_bond=", 2**(j+1))
      if qmera_type=="brickwall":
       n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera,even_depth, Qubit_ara, i)
      if qmera_type=="pollmann":
@@ -215,7 +215,7 @@ def MERA_internal( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit, Qubit_ara
       list_Qubit=list_Qubit1+list_Qubit2
       list_Qubit=[ i + i_start  for i in list_Qubit]
 
-      print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
+      #print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
 
       if qmera_type=="brickwall":
        n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera,odd_depth, Qubit_ara,i)
@@ -232,7 +232,7 @@ def MERA_internal( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit, Qubit_ara
 
 
 
-def qmps_f(L=16, in_depth=2, n_Qbit=3, data_type='float64', qmps_structure="brickwall", canon="left",  n_q_mera=2, seed_init=10, internal_mera="brickwall"):
+def qmps_f( L=16, in_depth=2, n_Qbit=3, data_type='float64', qmps_structure="brickwall", canon="left",  n_q_mera=2, seed_init=10, internal_mera="brickwall"):
 
    seed_val=seed_init
    list_u3=[]
@@ -554,7 +554,7 @@ def qmera_f( L=16, in_depth=4, n_Qbit=1, depth_total=3 ,data_type='float64', qme
      list_Qubit1=[(i-i_nq)%L  for i_nq in reversed(range(n_Qbit_temp))]
      list_Qubit2=[ (i-i_nq+2**(j))%L    for i_nq in reversed(range(n_Qbit_temp))  ]
      list_Qubit=list_Qubit1+list_Qubit2
-     print("1_Qubit", list_Qubit, "site=", i, "layer=", j,"max_bond=", 2**(j+1))
+     #print("1_Qubit", list_Qubit, "site=", i, "layer=", j,"max_bond=", 2**(j+1))
      if qmera_type=="brickwall":
       n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera, even_depth, i, i)
      if qmera_type=="pollmann":
@@ -565,7 +565,7 @@ def qmera_f( L=16, in_depth=4, n_Qbit=1, depth_total=3 ,data_type='float64', qme
       list_Qubit1=[ (i-i_nq+2**(j))%L  for i_nq in reversed(range(n_Qbit_temp))]
       list_Qubit2=[ (i-i_nq+2**(j+1))%L  for i_nq in reversed(range(n_Qbit_temp))]
       list_Qubit=list_Qubit1+list_Qubit2
-      print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
+      #print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
 
       if qmera_type=="brickwall":
        n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera, odd_depth, i, i)
@@ -611,7 +611,7 @@ def general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, depth, L,data_
      if r%2==0:
 
       for i in range(0,len(list_Qubit), 2):
-         print("G_e", list_Qubit[i], list_Qubit[i + 1], n_apply)
+         #print("G_e", list_Qubit[i], list_Qubit[i + 1], n_apply)
          if seed_val==0:
             G=np.eye(4, dtype=data_type).reshape((2, 2, 2, 2))
             Grand=qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
@@ -628,7 +628,7 @@ def general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, depth, L,data_
       for i in range(0,len(list_Qubit)-1, 2):
          if i+2 < len(list_Qubit)-1: 
 
-          print("G_o", list_Qubit[(i+1)], list_Qubit[i+2], n_apply)
+          #print("G_o", list_Qubit[(i+1)], list_Qubit[i+2], n_apply)
           if seed_val==0:
              G=np.eye(4, dtype=data_type).reshape((2, 2, 2, 2))
              Grand=qu.randn((2, 2, 2, 2),dtype=data_type, dist="uniform", seed=i+seed_val)
@@ -684,7 +684,7 @@ def MERA_internal_reverse( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit,Qu
      list_Qubit=list_Qubit1+list_Qubit2
      list_Qubit=[ -i+ i_start  for i in list_Qubit]
 
-     print("1_Qubit", list_Qubit, "site=",i, "layer=", j,"max_bond=", 2**(j+1))
+     #print("1_Qubit", list_Qubit, "site=",i, "layer=", j,"max_bond=", 2**(j+1))
      if qmera_type=="brickwall":
       n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera)
      if qmera_type=="pollmann":
@@ -698,7 +698,7 @@ def MERA_internal_reverse( psi, i_start, L, in_depth, n_apply, list_u3,n_Qbit,Qu
       list_Qubit=list_Qubit1+list_Qubit2
       list_Qubit=[ -i + i_start  for i in list_Qubit]
 
-      print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
+      #print("2_Qubit", list_Qubit, "site=", i, "layer=",j)
 
       if qmera_type=="brickwall":
        n_apply, list_u3=general_unitary_qmera_list(psi, list_Qubit, n_apply, list_u3, in_depth_tmp, L,data_type,seed_val, depth_mera)
@@ -1322,24 +1322,24 @@ def qmps_gate_f_inf( L=16, block_size=4, in_depth=2, n_Qbit=3, seed_val=10,b_s_g
     if i%b_s_g==2:
        list_basis.append("1")
     if i%b_s_g==3:
-       list_basis.append("1")
-
-
-
-   list_basis=[]
-   for i in range(L):
-    if i%b_s_g==0:
-       list_basis.append("1")
-    if i%b_s_g==1:
        list_basis.append("0")
-    if i%b_s_g==2:
-       list_basis.append("1")
-    if i%b_s_g==3:
-       list_basis.append("1")
-    if i%b_s_g==4:
-       list_basis.append("1")
-    if i%b_s_g==5:
-       list_basis.append("0")
+
+
+
+#   list_basis=[]
+#   for i in range(L):
+#    if i%b_s_g==0:
+#       list_basis.append("1")
+#    if i%b_s_g==1:
+#       list_basis.append("0")
+#    if i%b_s_g==2:
+#       list_basis.append("1")
+#    if i%b_s_g==3:
+#       list_basis.append("1")
+#    if i%b_s_g==4:
+#       list_basis.append("1")
+#    if i%b_s_g==5:
+#       list_basis.append("0")
 #     if i%b_s_g==6:
 #        list_basis.append("1")
 #     if i%b_s_g==7:
@@ -1437,8 +1437,8 @@ def imps( ):
 
 
  Qbit=2
- D=8
- L_L=36                        
+ D=16
+ L_L=8                        
  b_s=2                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
@@ -1459,7 +1459,7 @@ def imps( ):
  print ( "Info", "L", L_L, "Qbit", Qbit,"b_s", b_s, "D", D, "U", U, "t", t, "mu", mu, "GATE", GATE)
 
 
- qmps.draw(color=[i  for i in list_sharedtags ], iterations=600, figsize=(40, 80),return_fig=True,node_size=1200,edge_scale=6,initial_layout='spectral', edge_alpha=0.633)
+ qmps.draw(color=[i  for i in list_sharedtags ], iterations=600, figsize=(40, 40),return_fig=True,show_inds=False, show_tags=False, show_scalars=False,node_size=1000,edge_scale=6,initial_layout='spectral', edge_alpha=0.633)
  plt.savefig('iMPS.pdf')
  plt.clf()
 
@@ -1526,22 +1526,22 @@ def imps( ):
 
 def  Gate_qmps_infinit( ):
 
- U=6.0
+ U=4.0
  t=1.0
  mu=U/2.
- mu=0
+ #mu=0
 
- Qbit=4
+ Qbit=2
  Depth=4
  D=8
- L_L=90                        
- b_s=6                          #----ABCABCABC----
+ L_L=120                       
+ b_s=4                          #----ABCABCABC----
  l_mpo=2 * ( b_s//2 + 1  )
  GATE="FSIMG"
  PARAM=5
 
-#  GATE="SU4"
-#  PARAM=15
+ GATE="SU4"
+ PARAM=15
 
 
  opt="auto-hq"
@@ -1566,7 +1566,7 @@ def  Gate_qmps_infinit( ):
 
 
 
- qmps=Smart_infgate(qmps)
+ #qmps=Smart_infgate(qmps)
 
  #MPO_origin=mpo_Fermi_Hubburd_inf( l_mpo//2, U, t, mu)
  MPO_origin=mpo_Fermi_Hubburd_inf_1( l_mpo//2, U, t, mu)
@@ -1590,18 +1590,18 @@ def  Gate_qmps_infinit( ):
  tnopt_qmps=auto_diff_infgate( qmps, MPO_origin, GATE, list_sharedtags, L_L, l_mpo, Qbit)
 
  tnopt_qmps.optimizer = 'L-BFGS-B' 
- qmps = tnopt_qmps.optimize( n=10, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
+ qmps = tnopt_qmps.optimize( n=100, ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False )
  
 ###########################################################################
  save_info_QMPS(qmps,circ, GATE ,list_tag_block)
 
  energy_f_local(qmps,l_mpo, L_L, Qbit,MPO_origin,mu)
- local_particle_info(qmps, L_L, Qbit)
- Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=1)
+ #local_particle_info(qmps, L_L, Qbit)
+ #Hubburd_correlation_inf(qmps, L_L, Qbit, b_s, opt, shift_AB=1)
 
 
- save_info_QMPS_gate(qmps,circ, GATE ,list_tag_block)
- Build_up_U_burnin(qmps,Qbit,PARAM,GATE,L_L,depth_local=4,ancilla_qubit=2)
+ #save_info_QMPS_gate(qmps,circ, GATE ,list_tag_block)
+ #Build_up_U_burnin(qmps,Qbit,PARAM,GATE,L_L,depth_local=4,ancilla_qubit=2)
 
 
 # qmps_u, n_ancilla=rebuil_qmps_U(Qbit,GATE,L_L,b_s,b_s_g=b_s)
@@ -1616,13 +1616,13 @@ def  Gate_qmps_infinit( ):
 # Hubburd_correlation_inf(qmps_u, L_L, Qbit+n_ancilla, b_s, opt,shift_AB=1)
 
 
-
-#  y=tnopt_qmps.losses[:]
-#  file = open("Data/infqmps.txt", "w")
-#  for index in range(len(y)):
-#     E_val=(y[index]+N_par*mu)  / ( (l_mpo/2) - 1.)
-#     file.write( str(index) + "  "+ str(y[index])+ "  "+ str(abs((E_val-E_exact)/E_exact)) + "\n")
-#  file.close()
+ E_exact=-0.571380
+ y=tnopt_qmps.losses[:]
+ file = open("Data/infqmps.txt", "w")
+ for index in range(len(y)):
+    E_val=(y[index]+mu*2.0)  / ( (l_mpo/2) - 1.)
+    file.write( str(index) + "  "+ str(y[index])+ "  "+ str(E_val)+ "  "+ str(abs((E_val-E_exact)/E_exact)) + "\n")
+ file.close()
 
 
 
@@ -2506,7 +2506,7 @@ def auto_diff_function(psi, p_DMRG,optimizer_c='L-BFGS-B'):
 def norm_f_energy(qmps):
     # method='qr' is the default but the gradient seems very unstable
     # 'mgs' is a manual modified gram-schmidt orthog routine
-    return qmps.unitize(method='mgs')
+    return qmps.unitize(method='mgs', allow_no_left_inds=True)
 
 
 def energy_f(qmps, p_DMRG, MPO):
@@ -2592,31 +2592,52 @@ def auto_diff_qmps( ):
 
  opt="auto-hq"
  J_l=[]
- L_L=32
- Qbit=2
- Depth=1
- D=32
- depth_total_f=10
+ L_L=12
+ Qbit=4
+ Depth=2
+ D=46
+ depth_total_f=1
 
  print ( "Info_QMPS", "L", L_L, "Qbit", Qbit, "Depth", Depth, "D", D, "depth_total_f", depth_total_f, "U", U, "t", t, "mu", mu)
 
-# qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
-# qmps.unitize_(method='mgs')
+ qmps, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=10, internal_mera="brickwall", n_q_mera=2)
+ qmps.unitize_(method='mgs')
 
 
 
  #print ("Defined qmps", qmps)
 
- qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=0, internal_mera="brickwall",n_q_mera=2 )
- qmps.unitize_(method='mgs')
+# qmps, tag=brickwall_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="brickwall", seed_init=0, internal_mera="brickwall",n_q_mera=2 )
+# qmps.unitize_(method='mgs')
 
-# qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=2,seed_init=10 )
+# qmps, tag=pollmann_circuit( L=L_L, in_depth=Depth, n_Qbit=Qbit, depth_total=depth_total_f, qmps_structure="pollmann", n_q_mera=10,seed_init=10 )
 # qmps.unitize_(method='mgs')
 
  #qmps, tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall',seed_init=90) 
  #qmps.unitize_(method='mgs')
 
- print ( "number_gates", len(tag), len(tag)*15 )
+
+ #print (qmps.ind_map)
+
+ count_val = 0
+ for key in qmps.ind_map:
+  for key1 in qmps.ind_map:
+   if key1 != key and len(qmps.ind_map[key])==2:
+    if qmps.ind_map[key1] == qmps.ind_map[key]:
+       count_val+=1
+       #print (key, key1, qmps.ind_map[key1], qmps.ind_map[key]) 
+
+
+ #print (qmps.inner_inds())
+
+ print (count_val, count_val//2, "links", qmps.num_indices-(2*L_L))
+ print ( "number_gates", len(tag), qmps.num_tensors-L_L,  len(tag)*6 - (qmps.num_indices-(2*L_L)) - (count_val//2)  )
+
+
+
+
+
+
 
  qmps.draw( color=[f"lay{i}" for i in range(100)], iterations=2500, figsize=(120, 120),  return_fig=True,node_size=3000 , edge_scale=6, initial_layout='spectral', edge_alpha=0.633)
  plt.savefig('qmps.pdf')
@@ -2624,7 +2645,7 @@ def auto_diff_qmps( ):
 
  #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
  MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
- qmps=Smart_guess(qmps, tag, L_L, Qbit, val_iden=0.001)
+ #qmps=Smart_guess(qmps, tag, L_L, Qbit, val_iden=0.001)
  #qmps=Smart_guessmera(qmps, tag, L_L, Qbit, val_iden=0.00)
 
  psi_h=qmps.H 
@@ -2661,8 +2682,8 @@ def auto_diff_qmps( ):
  coupling=-0.10
  for iter in range(1):
   coupling=coupling+0.1
-  #MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
-  MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
+  MPO_origin=mpo_Fermi_Hubburd(L_L//2, U, t, mu)
+  #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
   #MPO_origin=mpo_longrange_Heisenberg(L_L)
   #DMRG_test( L_L, U, t, mu)
   #print ("MPO", MPO_origin.show())
@@ -2689,9 +2710,9 @@ def auto_diff_qmps( ):
 
 
   tnopt_qmps.optimizer = 'L-BFGS-B' 
-  #tnopt_qmps.optimizer = 'CG' 
-  print ( tnopt_qmps.optimizer )
-  qmps = tnopt_qmps.optimize(n=4000 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  qmps = tnopt_qmps.optimize(n=1 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+
+
   #qmps = tnopt_qmps.optimize_basinhopping(n=100, nhop=10, temperature=0.5 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 1, disp=False)
 
 
@@ -2713,7 +2734,7 @@ def auto_diff_qmps( ):
 
 
   #Hubburd_correlation( qmps, L_L, opt) 
-  correlation( qmps, L_L, opt) 
+  #correlation( qmps, L_L, opt) 
 
   #N_particle, N_up, N_down=Hubburd_correlation( qmps, L_L, opt) 
   #print ("QMPS-part", N_particle, N_up, N_down)
@@ -2722,19 +2743,28 @@ def auto_diff_qmps( ):
 
 
 
-#   for D in range(4,10,4):
-#    print("DMRG")
-#    dmrg = DMRG2(MPO_origin, bond_dims=[2,D//2, D], cutoffs=1e-10) 
-#    dmrg.solve(tol=1e-8, verbosity=0 )
-#    E_DMRG=dmrg.energy
-#    print( "DMRG", D, (2)*(4*D*D-1)+(2)*(3*D-1)+(L_L-4)*(3*D*D-1), abs(E_DMRG-E_exact)/abs(E_exact))
-# 
+#  for D in range(2,44,2):
+#   #print("DMRG")
+#   dmrg = DMRG2(MPO_origin, bond_dims=[2,D//2, D], cutoffs=1e-10) 
+#   dmrg.solve(tol=1e-8, verbosity=0 )auto_diff_qmps
+#   E_DMRG=dmrg.energy
+#   if D<=4:
+#    print(  D, (  2*(2-1) + 4*(4-1)   ) + (2*D*D+2*D*D-1) +  (L_L-6)* (  ((3*D-1)*(D))/2   ) , abs(E_DMRG-E_exact)/abs(E_exact))
+#   elif D<=8:
+#    print(  D, (  2*(2-1) + 4*(4-1)+8*(8-1)   ) + (2*D*D+2*D*D-1) +  (L_L-8)* (  ((3*D-1)*(D))/2   ) , abs(E_DMRG-E_exact)/abs(E_exact))
+#   elif D<=16:
+#    print(  D, (  2*(2-1) + 4*(4-1)+8*(8-1)+16*(16-1)   ) + (2*D*D+2*D*D-1) +  (L_L-10)* (  ((3*D-1)*(D))/2   ) , abs(E_DMRG-E_exact)/abs(E_exact))
+#   elif D<=32:
+#    print(  D, (  2*(2-1) + 4*(4-1)+8*(8-1)+16*(16-1)+32*(32-1)   ) + (2*D*D+2*D*D-1) +  (L_L-12)* (  ((3*D-1)*(D))/2   ) , abs(E_DMRG-E_exact)/abs(E_exact))
 
-  dmrg = DMRG2(MPO_origin, bond_dims=[2,D//2, D], cutoffs=1e-10) 
-  dmrg.solve(tol=1e-8, verbosity=0 )
+
+  dmrg = DMRG2(MPO_origin, bond_dims=[2, D//2, D], cutoffs=1e-12) 
+  dmrg.solve(tol=1e-9, verbosity=0 )
   E_DMRG=dmrg.energy
   p_DMRG=dmrg.state
+  print ( p_DMRG.show())
   #correlation( p_DMRG, L_L, opt) 
+  Hubburd_correlation( p_DMRG, L_L, opt) 
 
 
 
@@ -3196,6 +3226,10 @@ def Smart_guessmera(qmps, tag, L, Qbit , val_iden=0):
   qmps.unitize_(method='mgs')
   return qmps
 
+def U_counting(n,m):
+ return ((n**2)*(m**2) )-(  ((m**2)*((m**2)+1.))/2.)
+def V_counting(n,m):
+ return ((n**2)*m)-(  (m*(m+1.))/2.)
 
 
 def  H_terms_Fermi(L, U, t, mu):
@@ -3263,8 +3297,8 @@ def  auto_diff_qmps_local( ):
 
  J_l=[]
  L_L=2**5
- Qbit=4
- Depth=4
+ Qbit=2
+ Depth=2
  depth_total_f=1
  D=2
  U=3.
@@ -3273,7 +3307,7 @@ def  auto_diff_qmps_local( ):
  
  print ("info", "L", L_L, "Qubit", Qbit, "Depth", Depth, "Depth_total",depth_total_f )
  list_sites, list_inter=H_terms_Fermi(L_L//2, U, t, mu)
- #list_sites, list_inter=H_terms_Hisenberg(L_L)
+ list_sites, list_inter=H_terms_Hisenberg(L_L)
 
  opt = ctg.ReusableHyperOptimizer(
      progbar=True,
@@ -3298,9 +3332,59 @@ def  auto_diff_qmps_local( ):
  qmera.add_tag("U", which='all')
  qmera.unitize_()
 
- qmera,tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall', seed_init=10) 
- qmera.unitize_(method='mgs')
- print (  Qbit, Depth, len(tag)*15   )
+ #bond_list=[ (2,2), (2,2), (2,2),  (2,2),  (2,1)  ]
+ #bond_list=[ (2,3), (3,3), (3,3),  (3,3),  (3,1)  ]
+ #bond_list=[ (2,4), (4,4), (4,4),  (4,4),  (4,1)  ]
+ bond_list=[ (2,4), (5,5), (5,5),  (5,5),  (5,1)  ]
+ bond_list=[ (2,4), (4,6), (6,6),  (6,6),  (6,1)  ]
+ bond_list=[ (2,4), (4,7), (7,7),  (7,7),  (7,1)  ]
+ #bond_list=[ (2,4), (4,8), (8,8),  (8,8),  (8,1)  ]
+ #bond_list=[ (2,4), (4,9), (9,9),  (9,9),  (9,1)  ]
+ #bond_list=[ (2,4), (4,10), (10,10),  (10,10),  (10,1)  ]
+
+ count=0
+ lay_count=1
+ for i in bond_list:
+     if lay_count<5:
+      m,n=i
+      count+=( L_L * (2**(-lay_count)) )*(U_counting(m,m)+V_counting(m,n)) - ( L_L * (2**(-lay_count)) ) * ( m*(m-1)+n*(n-1) ) 
+      print ("U",U_counting(m,m), ( L_L * (2**(-lay_count)) ) * ( m*(m-1)+n*(n-1) ) *(0.5))
+      print ("V",V_counting(m,n), L_L * (2**(-lay_count)))
+
+     else :
+      m,n=i
+      count+=( L_L * (2**(-lay_count)) )*(V_counting(m,n))
+      print ("Last_V",V_counting(m,n), L_L * (2**(-lay_count)))
+
+     lay_count+=1
+     
+     
+ print ("mera", D,qmera.num_indices, count)
+
+
+
+ #qmera,tag=qmera_f(L=L_L,in_depth=Depth,n_Qbit=Qbit,depth_total=int(math.log2(L_L)),data_type='float64',qmera_type='brickwall', seed_init=10) 
+ #qmera.unitize_(method='mgs')
+ #print (  Qbit, Depth, len(tag)*15   )
+
+
+# count_val = 0
+# for key in qmera.ind_map:
+#  for key1 in qmera.ind_map:
+#   if key1 != key and len(qmera.ind_map[key])==2:
+#    if qmera.ind_map[key1] == qmera.ind_map[key]:
+#       count_val+=1
+#       print (key, key1, qmera.ind_map[key1], qmera.ind_map[key]) 
+
+
+# print (qmera.inner_inds())
+
+# print (count_val, count_val//2, "links", qmera.num_indices-(2*L_L))
+# print ( "number_gates", len(tag), qmera.num_tensors-L_L,  len(tag)*6 - (qmera.num_indices-(2*L_L)) - (count_val//2)  )
+
+
+
+
 
 
 # qmera, tag=qmps_f( L=L_L, in_depth=Depth, n_Qbit=Qbit, data_type='float64', qmps_structure='brickwall', canon="left",  seed_init=0, internal_mera="brickwall", n_q_mera=2)
@@ -3329,7 +3413,7 @@ def  auto_diff_qmps_local( ):
 
 
 
- print ( "number_gates", len(tag)   )
+ #print ( "number_gates", len(tag)   )
 
  for i in range(len(list_sites)):
   where=(i,(i+1)%L_L)
@@ -3371,12 +3455,13 @@ def  auto_diff_qmps_local( ):
  #qmera=Smart_guessmera(qmera, tag, L_L, Qbit, val_iden=0.00)
  #save_to_disk(qmera, "Store/qmeraGuess")
  #qmera=Smart_guess(qmera, tag, L_L, Qbit, val_iden=0.00)
+ qmera=load_from_disk("Store/qmera")
 
  print ("energy_init", energy_f_qmera(qmera, list_sites, list_inter))
 
 
  coupling=-0.0
- for iter in range(10):
+ for iter in range(1):
   #E_exact = qu.heisenberg_energy(L_L)
   #print ("energy_exact", L_L, E_exact)
   #MPO_origin=MPO_ham_heis(L=L_L, j=(1.0,1.0,1.0), bz=0.0, S=0.5, cyclic=False)
@@ -3399,7 +3484,7 @@ def  auto_diff_qmps_local( ):
   tnopt_qmera=auto_diff_energy_qmera(qmera, list_sites,list_inter , opt, optimizer_c='L-BFGS-B')
 
   tnopt_qmera.optimizer = 'L-BFGS-B' 
-  qmera = tnopt_qmera.optimize(n=9000 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
+  qmera = tnopt_qmera.optimize(n=50 ,ftol= 2.220e-10, maxfun= 10e+9, gtol= 1e-12, eps= 1.49016e-08, maxls=400, iprint = 0, disp=False)
 
 
 
@@ -3435,20 +3520,6 @@ def  auto_diff_qmps_local( ):
  for index in range(len(y_list)):
     file.write(str(x_list[index]) + "  "+ str(y[index])+ "  "+ str(y_list[index]) + "\n")
 
-
-
-
-#  plt.loglog(x_list, y_list, '4', color = '#e3360b', label='q=3, lay=6')
-# 
-# 
-#  plt.title('qmera')
-#  plt.ylabel(r'$\delta$ E')
-#  plt.ylabel(r'$h$')
-#  #plt.axhline(1.149e-07, color='black', label='D=8')
-#  plt.legend(loc='upper left')
-#  plt.grid(True)
-#  plt.savefig('qmera-plot.pdf')
-#  plt.clf()
 
 
 
@@ -5050,8 +5121,6 @@ def   correlation_mera(qmera, L_L, opt):
   file.close()
 
 
-
-
 def   Hubburd_correlation_mera( qmera, L_L, opt):
 
   Z = qu.pauli('Z')
@@ -5075,14 +5144,11 @@ def   Hubburd_correlation_mera( qmera, L_L, opt):
   Wn = np.zeros([1, 1, 2, 2], dtype='float64')
   Wn[ 0, 0,:,:]=S_up@S_down
 
-
-
   MPO_result=MPO_identity(L_L, phys_dim=2)
   MPO_result=MPO_result*0.0
   MPO_f=MPO_result*0.0
   max_bond_val=100
   cutoff_val=1.0e-10
-
 
   list_z=[]
   list_r=[]
@@ -5272,24 +5338,6 @@ def   Hubburd_correlation_mera( qmera, L_L, opt):
 
 
   #return  N_particle,  N_up,  N_down
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

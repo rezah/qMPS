@@ -43,6 +43,7 @@ logy = np.log(error)
 
 yfit = lambda y: np.exp(poly(np.log(y)))
 coeffs = np.polyfit(logx,logy,deg=1)
+print ("QC-bf", coeffs)
 poly = np.poly1d(coeffs)
 
 
@@ -124,24 +125,25 @@ print ("qMPS-lf", coeffs)
 
 
 
-y_rand=np.arange(490, 8.0e6) 
-y_rand1=np.arange(2400, 8.0e6) 
-y_rand2=np.arange(5000, 8.0e6) 
+y_rand=np.arange(300, 8.0e6) 
+y_rand1=np.arange(300, 8.0e6) 
+y_rand2=np.arange(2000, 8.0e6) 
 
 fig=plt.figure(figsize=(7,7))
 
+plt.loglog(y_rand2,yfitDMRG(y_rand2) ,'--',lw=4,  color = '#204a87' )
 plt.loglog(y_rand,yfitp(y_rand),'-.', lw=4,color = '#e30b69')
 plt.loglog(y_rand,yfit(y_rand) ,'-.',  lw=4,color = '#e90ff5' )
-plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#cf729d' )
+#plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#cf729d' )
 plt.loglog(y_rand2,yfitqmpsbq8(y_rand2) ,'--',lw=4,  color = '#a40000' )
 
 
-plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='DMRG')
+plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='dMPS (DMRG)')
 
-plt.loglog( y, error,'s', color = '#e90ff5',markersize=15, label='QC-b')
+plt.loglog( y, error,'X', color = '#e90ff5',markersize=15, label='QC-b')
 plt.loglog( yp, errorp, 'o', color = '#e30b69',markersize=15, label='QC-l')
-plt.loglog( yqmpsbq5, errorqmpsbq5,'d', markersize=15,color = '#cf729d', label=r'$qMPS, q=6$')
-plt.loglog( yqmpsbq8, errorqmpsbq8,'D',markersize=15, color = '#a40000', label=r'$qMPS, q=8$')
+#plt.loglog( yqmpsbq5, errorqmpsbq5,'d', markersize=15,color = '#cf729d', label=r'qMPS, $q=6$')
+plt.loglog( yqmpsbq8, errorqmpsbq8,'D',markersize=15, color = '#e91e7a', label=r'qMPS, $q=8$')
 
 
 #plt.title('qmps')
@@ -151,7 +153,7 @@ plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.000143, color='black', label='D=8')
 #plt.axhline(0.000355, color='black', label='D=16')
 
-plt.xlim([700,6.0e5])
+plt.xlim([300,50000])
 plt.ylim([5.e-5, 1.e-1])
 
 plt.xticks(fontsize=18)

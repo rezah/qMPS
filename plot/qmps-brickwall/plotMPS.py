@@ -68,9 +68,9 @@ error4=sort_low(error4)
 
 
 plt.figure(figsize=(8, 6))
-plt.axhline(0.00422,color='black', label='DMRG, D=4')
-plt.axhline(0.0001435, color='black', label='DMRG, D=8')
-plt.axhline(4.1178e-06, color='black', label='DMRG,D=16')
+plt.axhline(0.00422,color='black', label='dMPS(DMRG), D=4')
+plt.axhline(0.0001435, color='black', label='dMPS(DMRG), D=8')
+plt.axhline(4.1178e-06, color='black', label='dMPS(DMRG), D=16')
 
 plt.loglog( errorr10, '--', lw=4, color = '#e3360b', label=r'$ \tau=14,rand$')
 plt.loglog( errorg10, '--', lw=4, color = '#72cfbb', label=r'$ \tau=6,rand$')

@@ -74,16 +74,22 @@ x_lbfgs1=[ i for i in range(1,len(list(lbfgs1))+1 ) ]
 plt.figure(figsize=(8, 6))
 
 
-plt.plot( x_cg, cg, '-', lw=4,color = '#0b8de3', label='cg')
-plt.plot( x_cg1, cg1, '--', lw=4,color = '#0b8de3', label='cg')
-#plt.plot( cg2, 'o', color = '#0b8de3', label='cg-3')
-plt.plot( x_dmrgF, dmrgF,'-', lw=4,color = '#cf729d', label='dmrg')
-plt.plot( x_dmrgF1,dmrgF1,'--', lw=4,color = '#cf729d', label='dmrg')
-#plt.plot( dmrgF2,'o', color = '#cf729d', label='dmrg-3')
 
-plt.plot( x_lbfgs,lbfgs,'-', lw=4,color = '#c22a0c', label='l-bfgs-b')
-plt.plot( x_lbfgs1,lbfgs1,'--', lw=4,color = '#c22a0c', label='l-bfgs-b')
-#plt.plot( lbfgs2,'o', color = '#c22a0c', label='l-bfgs-b-3')
+#plt.plot( x_cg, -np.log10(cg)/16, '-', lw=4,color = '#0b8de3', label='CG')
+#plt.plot( x_cg1, -np.log10(cg1)/16, '--', lw=4,color = '#0b8de3', label='CG')
+#plt.plot( x_dmrgF, -np.log10(dmrgF)/16,'-', lw=4,color = '#cf729d', label='local')
+#plt.plot( x_dmrgF1,-np.log10(dmrgF1)/16,'--', lw=4,color = '#cf729d', label='local')
+#plt.plot( x_lbfgs,-np.log10(lbfgs)/16,'-', lw=4,color = '#c22a0c', label='L-BFGS-B')
+#plt.plot( x_lbfgs1,-np.log10(lbfgs1)/16,'--', lw=4,color = '#c22a0c', label='L-BFGS-B')
+
+
+
+plt.plot( x_cg, cg, '-', lw=4,color = '#0b8de3', label='CG')
+plt.plot( x_cg1, cg1, '--', lw=4,color = '#0b8de3', label='CG')
+plt.plot( x_dmrgF, dmrgF,'-', lw=4,color = '#cf729d', label='local')
+plt.plot( x_dmrgF1,dmrgF1,'--', lw=4,color = '#cf729d', label='local')
+plt.plot( x_lbfgs,lbfgs,'-', lw=4,color = '#c22a0c', label='L-BFGS-B')
+plt.plot( x_lbfgs1,lbfgs1,'--', lw=4,color = '#c22a0c', label='L-BFGS-B')
 
 
 
@@ -98,7 +104,7 @@ plt.xscale('log')
 
 
 #plt.title('qmps')
-plt.ylabel(r'$1-\mathcal{F}$',fontsize=21)
+plt.ylabel(r'$\bar{\mathcal{F}}$',fontsize=21)
 plt.xlabel(r'$iterations$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
 #plt.axhline(0.000143, color='black', label='D=8')
@@ -106,7 +112,7 @@ plt.xlabel(r'$iterations$',fontsize=21)
 
 
 plt.xlim([1,2000])
-plt.ylim([1.e-1, 1.2e0])
+plt.ylim([8.e-2, 1.2e0])
 
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)

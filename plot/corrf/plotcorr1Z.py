@@ -40,8 +40,8 @@ y=[    abs(y[i])     for i in range(len(y))     ]
 R=np.loadtxt("corrZQ4.txt")
 xQ4=R[:,2]
 yQ4=R[:,3]
-errorQ4=[    abs((y[i]-yQ4[i])/ y[i])     for i in range(len(y))]
 yQ4=[    abs(yQ4[i])     for i in range(len(yQ4))     ]
+errorQ4=[    abs((y[i]-yQ4[i])/ y[i])     for i in range(len(y))]
 
 
 
@@ -51,8 +51,8 @@ yQ4=[    abs(yQ4[i])     for i in range(len(yQ4))     ]
 R=np.loadtxt("corrZQ5.txt")
 xQ5=R[:,2]
 yQ5=R[:,3]
-errorQ5=[    abs((y[i]-yQ5[i])/ y[i])     for i in range(len(y))]
 yQ5=[    abs(yQ5[i])     for i in range(len(yQ5))     ]
+errorQ5=[    abs((y[i]-yQ5[i])/ y[i])     for i in range(len(y))]
 
 
 
@@ -60,16 +60,16 @@ yQ5=[    abs(yQ5[i])     for i in range(len(yQ5))     ]
 R=np.loadtxt("corrZQ7.txt")
 xQ7=R[:,2]
 yQ7=R[:,3]
-errorQ7=[    abs((y[i]-yQ7[i])/ y[i])     for i in range(len(y))]
 yQ7=[    abs(yQ7[i])     for i in range(len(yQ7))     ]
+errorQ7=[    abs((y[i]-yQ7[i])/ y[i])     for i in range(len(y))]
 
 
 ##print (errorD16)
 R=np.loadtxt("corrZQ8.txt")
 xQ8=R[:,2]
 yQ8=R[:,3]
-errorQ8=[    abs((y[i]-yQ8[i])/ y[i])     for i in range(len(y))]
 yQ8=[    abs(yQ8[i])     for i in range(len(yQ8))     ]
+errorQ8=[    abs((y[i]-yQ8[i])/ y[i])     for i in range(len(y))]
 
 
 fig=plt.figure(figsize=(8,6))
@@ -77,9 +77,9 @@ fig=plt.figure(figsize=(8,6))
 
 
 #plt.plot( x, y, '--', color = '#e30b69',markersize=10, label=r'$D=16$')
-plt.plot( x, yQ4, '>', color = '#a40000',markersize=11, label=r'$qMPS, q=4$')
-plt.loglog( x, yQ5,'o',markersize=11, color = '#f57900', label=r'$qMPS, q=5$')
-plt.loglog( x, yQ8,'s', color = '#e30b69',markersize=11, label=r'$qMPS, q=8$')
+plt.plot( x, yQ4, '>', color = '#a40000',markersize=11, label=r'qMPS, $q=4$')
+plt.loglog( x, yQ5,'o',markersize=11, color = '#f57900', label=r'qMPS, $q=5$')
+plt.loglog( x, yQ8,'s', color = '#e30b69',markersize=11, label=r'qMPS, $q=8$')
 plt.loglog( x, y, '--', lw=2,color = '#204a87', label='DMRG')
 
 

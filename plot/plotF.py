@@ -53,6 +53,7 @@ logx = np.log(yg)
 logy = np.log(errorg)
 yfitDMRG = lambda yg: np.exp(polydmrg(np.log(yg)))
 coeffs = np.polyfit(logx,logy,deg=1)
+print ("dmrgf", coeffs)
 polydmrg = np.poly1d(coeffs)
 
 
@@ -128,24 +129,24 @@ poly4 = np.poly1d(coeffs)
 
 
 
-y_rand=np.arange(390, 5.0e4) 
-y_rand1=np.arange(6400, 20.0e4) 
-y_rand2=np.arange(6500, 20.0e4) 
+y_rand=np.arange(1000, 5.0e4) 
+y_rand1=np.arange(1000, 20.0e4) 
+y_rand2=np.arange(1000, 20.0e4) 
 
 fig=plt.figure(figsize=(7,7))
 
 #plt.loglog( y_rand2, yfit(y_rand2)  , '--',lw=4, color = '#e90ff5' )
-#plt.loglog(y_rand2,yfitqmpsp(y_rand2) ,'--',lw=4,  color = '#cf729d' )
+plt.loglog(y_rand2,yfitDMRG(y_rand2) ,'--',lw=4,  color = '#204a87' )
 plt.loglog(y_rand2,yfitqmpsbq5(y_rand2) ,'--',lw=4,  color = '#356e6a' )
 #plt.loglog(y_rand2,yfitqmpsbb(y_rand2) ,'--',lw=4,  color = '#cc0000' )
 plt.loglog(y_rand2,yfitqmpsb(y_rand2) ,'--',lw=4,  color = '#a40000' )
 
-plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='DMRG')
+plt.loglog( yg, errorg, 'H', markersize=15,color = '#204a87', label='dMPS (DMRG)')
 
-plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#356e6a', label=r'$qMPS, q=5$')
-plt.loglog( yqmpsp, errorqmpsp,'d', markersize=15,color = '#cf729d', label=r'$qMPS, q=6$')
-plt.loglog( yqmpsbb, errorqmpsbb,'>',markersize=15, color = '#cc0000', label=r'$qMPS, q=7$')
-plt.loglog( yqmpsb, errorqmpsb,'D', markersize=15,color = '#a40000', label=r'$qMPS, q=8$')
+plt.loglog( yqmpsbq5, errorqmpsbq5,'s',markersize=15, color = '#a40000', label=r'qMPS, $q=5$')
+plt.loglog( yqmpsp, errorqmpsp,'d', markersize=15,color = '#cf729d', label=r'qMPS, $q=6$')
+plt.loglog( yqmpsbb, errorqmpsbb,'>',markersize=15, color = '#cc0000', label=r'qMPS, $q=7$')
+plt.loglog( yqmpsb, errorqmpsb,'D', markersize=15,color = '#e91e7a', label=r'qMPS, $q=8$')
 
 
 #plt.title('qmps')
@@ -154,12 +155,12 @@ plt.xlabel(r'$parameters$',fontsize=21)
 #plt.axhline(0.00422,color='black', label='D=4')
 
 
-plt.xlim([4000,120000])
-plt.ylim([5.e-5, 1.e-2])
+plt.xlim([1200,44000])
+plt.ylim([3.e-5, 1.e-1])
 
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
-plt.legend(loc="lower left", prop={'size': 22})
+plt.legend(loc="upper right", prop={'size': 22})
 
 plt.grid(True)
 plt.savefig('qmps-plotF.pdf')
